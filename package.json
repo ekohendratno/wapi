@@ -1,50 +1,64 @@
 {
   "name": "w@pi",
-  "version": "1.0.0",
-  "description": "WhatsApp Gateway using Express.js and Baileys for handling single-user sessions and message interactions.",
+  "version": "1.0.2",
+  "description": "Solusi WhatsApp Gateway Business Terintegrasi — Kirim pesan massal, auto-reply, jadwal pesan, dan analitik.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "start:dev": "nodemon index.js",
+    "dev": "nodemon index.js",
+    "prod": "NODE_ENV=production node index.js",
+    "lint": "echo \"No linter configured yet\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "whatsapp",
     "gateway",
-    "express",
+    "whatsapp-api",
+    "business",
+    "blast",
+    "auto-reply",
+    "scheduler",
     "baileys",
-    "api"
+    "express"
   ],
-  "author": "Your Name",
-  "license": "ISC",
+  "author": "Tim W@Pi <support@jasaedukasi.com>",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/wapi-gateway.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/wapi-gateway/issues"
+  },
+  "homepage": "https://wapi.jasaedukasi.com",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "^6.7.13",
-    "axios": "^1.7.9",
+    "axios": "^1.12.2",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
-    "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
     "duitku-nodejs": "^0.0.8",
     "ejs": "^3.1.10",
-    "express": "^4.18.2",
+    "express": "^4.19.2",
     "express-ejs-layouts": "^2.5.1",
     "express-fileupload": "^1.4.3",
     "express-session": "^1.18.1",
-    "http": "^0.0.1-security",
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.47",
+    "morgan": "^1.10.0",
     "mysql2": "^3.12.0",
     "node-cron": "^4.1.0",
-    "nodemon": "^3.1.9",
-    "path": "^0.12.7",
     "pino": "^9.6.0",
     "qrcode": "^1.5.3",
     "qrcode-terminal": "^0.12.0",
     "socket.io": "^4.8.1",
-    "update": "^0.4.2",
-    "uuid": "^11.0.5",
-    "whatsapp-gateway": "file:"
+    "uuid": "^11.0.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }

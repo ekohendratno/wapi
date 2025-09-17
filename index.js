@@ -49,7 +49,14 @@ const expressLayouts = require("express-ejs-layouts");
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
-  /* config IO */
+  cors: {
+    origin: "*", // Atau domain spesifik: "https://yourdomain.com"
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  transports: ["websocket", "polling"], // Fallback jika websocket gagal
+  pingTimeout: 60000,
+  pingInterval: 25000,
 });
 
 app.use(bodyParser.json());
@@ -68,16 +75,26 @@ app.use(
 );
 
 const session = require("express-session");
+app.set('trust proxy', 1); // Aktifkan jika pakai Nginx/Cloudflare
 
-// Tambahkan setelah middleware bodyParser
 app.use(
   session({
-    secret: "your-secret-key",
+    secret: process.env.SESSION_SECRET || "fallback-secret-for-dev-only-123",
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }, // Set `secure: true` jika menggunakan HTTPS
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production" && 
+              (process.env.SERVER_URL?.startsWith("https") || process.env.FORCE_SECURE_COOKIE === "true"),
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 jam
+      sameSite: "lax",
+    },
+    rolling: true,
+    name: "wapi.sid", // Opsional: ganti nama cookie
   })
 );
+
+
 
 const moment = require("moment");
 const momentTimezone = require("moment-timezone");
@@ -89,6 +106,14 @@ app.use((req, res, next) => {
 
 const folderSession = "./.sessions";
 app.use("/asset/sessions", express.static(folderSession));
+
+const morgan = require("morgan");
+// Logging HTTP requests
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+} else {
+  app.use(morgan("combined"));
+}
 
 // Inisialisasi manager
 const initData = new InitData(pool);
@@ -192,12 +217,127 @@ app.use("/auth", authRoutes);
 app.use("/session", sessionRoutes);
 app.use("/message", messageRoutes);
 app.use("/group", groupRoutes);
+// Health check endpoint
+app.get("/health", async (req, res) => {
+  try {
+    // Cek koneksi database
+    await pool.query("SELECT 1");
+    
+    // Cek minimal 1 session aktif
+    const sessions = sessionManager.getAllSessions();
+    const activeSessions = Object.values(sessions).filter(s => s.connected).length;
 
-initData.initDatabase();
-sessionManager.initSessions();
-cronManager.initCrons();
-// cronGroupManager.initCrons();
-const PORT = process.env.SERVERPORT;
-server.listen(PORT, () => {
-  console.log(`WhatsApp Gateway running on http://localhost:${PORT}`);
+    res.json({
+      status: "OK",
+      timestamp: new Date().toISOString(),
+      database: "connected",
+      active_sessions: activeSessions,
+      uptime: process.uptime(),
+    });
+  } catch (err) {
+    console.error("Health check failed:", err.message);
+    res.status(503).json({ status: "ERROR", error: err.message });
+  }
 });
+
+
+
+// Global error handler (Express)
+app.use((err, req, res, next) => {
+  console.error("Express Error:", err.stack);
+  
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  res.status(500).json({
+    error: "Internal Server Error",
+    message: process.env.NODE_ENV === "production" 
+      ? "Terjadi kesalahan pada server" 
+      : err.message
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Not Found",
+    message: "Endpoint tidak ditemukan"
+  });
+});
+
+
+// Menjadi:
+setTimeout(() => {
+  initData.initDatabase();
+}, 1000);
+
+setTimeout(() => {
+  sessionManager.initSessions();
+}, 3000);
+
+setTimeout(() => {
+  cronManager.initCrons();
+}, 5000);
+
+
+// Tambahkan di atas server.listen()
+const os = require("os");
+
+// Monitor memory usage setiap 5 detik
+setInterval(() => {
+  const usedHeap = process.memoryUsage().heapUsed / 1024 / 1024; // MB
+  const totalHeap = process.memoryUsage().heapTotal / 1024 / 1024; // MB
+  const heapUsagePercent = (usedHeap / totalHeap) * 100;
+
+  console.log(`📊 Memory Usage: ${usedHeap.toFixed(2)}MB / ${totalHeap.toFixed(2)}MB (${heapUsagePercent.toFixed(1)}%)`);
+}, 5000);
+
+
+// cronGroupManager.initCrons();
+const PORT = process.env.SERVER_PORT;
+const SERVER_URL = process.env.SERVER_URL;
+server.listen(PORT, () => {
+  console.log(`WhatsApp Gateway running on ${SERVER_URL}`);
+});
+
+
+// Graceful shutdown
+const shutdown = async (signal) => {
+  console.log(`\n${signal} received. Shutting down gracefully...`);
+
+  // Hentikan cron
+  console.log("🛑 Stopping cron jobs...");
+  // Jika CronManager punya method stop(), panggil di sini
+  // await cronManager.stop();
+
+  // Tutup semua session
+  console.log("🔌 Closing all WhatsApp sessions...");
+  const sessions = sessionManager.getAllSessions();
+  for (const key in sessions) {
+    try {
+      await sessionManager.removeSession(key, false);
+    } catch (err) {
+      console.warn(`Failed to close session ${key}:`, err.message);
+    }
+  }
+
+  // Tutup koneksi database
+  console.log("💾 Closing database pool...");
+  await pool.end();
+
+  // Tutup server
+  server.close(() => {
+    console.log("✅ Server closed gracefully.");
+    process.exit(0);
+  });
+
+  // Force exit setelah 10 detik
+  setTimeout(() => {
+    console.error("❌ Could not close gracefully. Forcing exit.");
+    process.exit(1);
+  }, 10000);
+};
+
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));

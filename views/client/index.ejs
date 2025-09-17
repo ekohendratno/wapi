@@ -69,7 +69,7 @@
                                             <%= device.name %>
                                         </td>
                                         <td>
-                                            <%= device.phone %>
+                                            <%= device.phone %> - <%= device.device_key %>
                                         </td>
                                         <td>
                                             <% const statusClass={ 'connected' : 'connected' , 'disconnected'
@@ -120,7 +120,7 @@
                                 </small><br/>
                                 <small>
                                     <i class="fa fa-phone me-1 text-success"></i>
-                                    <%= message.number %>
+                                    <%= message.number %> - <%= message.device_key %>
                                 </small><br/>
                                 <small class="text-muted">
                                     <i class="fa fa-message me-1"></i>

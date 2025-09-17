@@ -105,7 +105,7 @@
                         <select id="device" class="form-control">
                             <% devices.forEach(device=> { %>
                                 <option value="<%= device.device_key %>">
-                                    <%= device.name %> (<%= device.phone %>)
+                                    <%= device.name %> (<%= device.phone %> - <%= device.device_key %>)
                                 </option>
                                 <% }) %>
                         </select>
@@ -172,7 +172,7 @@
                 const row = `
                     <tr data-status="${message.status}">
                         <td>${formattedTime}</td>
-                        <td>${message.number}</td>
+                        <td>${message.number} - ${message.device_key}</td>
                         <td>${message.message}</td>
                         <td>${message.type}</td>
                         <td><span class="badge bg-${statusClass}">${message.status}</span></td>
