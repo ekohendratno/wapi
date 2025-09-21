@@ -27,7 +27,7 @@
 </div>
 
 <div class="row">
-  <div class="col-md-8">
+  <div class="col-md-12">
     <div class="stat-card">
       <h5 class="mb-4"><i class="fa fa-list me-2"></i>Daftar Perangkat</h5>
       <div class="table-responsive">
@@ -38,6 +38,7 @@
               <th>Nama Perangkat</th>
               <th>Nomor WA</th>
               <th>Life Time</th>
+              <th>Daily Limit</th>
               <th>Status</th>
               <th>Aksi</th>
             </tr>
@@ -57,12 +58,17 @@
               <td><%= device.phone %></td>
               <td><%= (device.life_time || 0) %> hari</td>
               <td>
+                <%= (device.message_count_today.total || 0) %>/<%=
+                (device.limit_daily || 0) %> pesan
+              </td>
+              <td>
                 <% const statusClass={ 'connected' : 'connected' ,
                 'disconnected' : 'disconnected' , 'connecting' : 'connecting'
                 }[device.status] || 'disconnected' %>
                 <span class="status-badge <%= statusClass %>">
-                  <i 
-                    class="fa fa-<%= statusClass === 'connected' ? 'check' : 'times' %>-circle" style="color:<%= statusClass === 'connected' ? 'green' : 'red' %>"
+                  <i
+                    class="fa fa-<%= statusClass === 'connected' ? 'check' : 'times' %>-circle"
+                    style="color:<%= statusClass === 'connected' ? 'green' : 'red' %>"
                   ></i>
                   <%= device.status.charAt(0).toUpperCase() +
                   device.status.slice(1) %>
@@ -102,7 +108,8 @@
                 >
                   <i class="fa fa-eye"></i>
                 </a>
-                <a href="javascript:void()"
+                <a
+                  href="javascript:void()"
                   title="Hapus"
                   class="btn btn-sm btn-danger btn-action"
                   onclick="confirmDelete('<%= device.device_key %>')"
@@ -118,7 +125,7 @@
       </div>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-12">
     <div class="stat-card">
       <h5 class="mb-4"><i class="fa fa-history me-2"></i>Riwayat Perangkat</h5>
       <ul class="list-group">
@@ -180,7 +187,8 @@
           </div>
           <div class="mb-3">
             <label for="packageId"
-              >Paket (<a href="/client/package">Lihat detail package</a>):</label
+              >Paket (<a href="/client/package">Lihat detail package</a
+              >):</label
             >
             <select
               class="form-control"
@@ -282,7 +290,7 @@
     kirimPesanButton.html('<i class="fa fa-spinner fa-spin"></i> Memproses...');
 
     if (!deviceKey || !to || !text) {
-      alert("Semua field harus diisi!");
+      showToast("Semua field harus diisi!", "danger");
       kirimPesanButton.prop("disabled", false);
       kirimPesanButton.html("Kirim");
       return;
@@ -299,14 +307,14 @@
         group: group,
       }),
       success: function (response) {
-        alert(response.message);
+        showToast("Pesan berhasil dikirim:", "success");
         console.log("Pesan berhasil dikirim:", response);
 
         $("#to").val("");
         $("#text").val("");
       },
       error: function (xhr, status, error) {
-        alert("Terjadi kesalahan saat mengirim pesan.");
+        showToast("Terjadi kesalahan saat mengirim pesan.", "danger");
         console.error("Gagal mengirim pesan:", xhr.responseText || error);
       },
       complete: function () {
@@ -331,7 +339,7 @@
       .html('<i class="fa fa-spinner fa-spin"></i> Memproses...');
 
     if (!deviceName || !phoneNumber) {
-      alert("Nama perangkat dan nomor perangkat harus diisi!");
+      showToast("Nama perangkat dan nomor perangkat harus diisi!", "danger");
       tambahDeviceButton.prop("disabled", false).html("Tambah Device");
       return;
     }
@@ -349,24 +357,24 @@
       }),
       success: function (result) {
         if (!result.status) {
-          alert(result.message);
+          showToast(response.message, "danger");
           if (result.redirect) {
             window.location.href = result.redirect;
           }
         } else {
-          alert("Device berhasil ditambahkan.");
+          showToast("Device berhasil ditambahkan.", "success");
           window.location.reload(); // Refresh halaman
         }
       },
       error: function (xhr) {
         let response = xhr.responseJSON;
         if (xhr.status === 400 && response) {
-          alert(response.message);
+          showToast(response.message, "danger");
           if (response.redirect) {
             window.location.href = response.redirect;
           }
         } else {
-          alert("Terjadi kesalahan saat menambahkan device.");
+          showToast("Terjadi kesalahan saat menambahkan device.", "danger");
         }
       },
       complete: function () {
@@ -399,14 +407,14 @@
       const result = await response.json();
 
       if (result.status) {
-        alert("Perangkat berhasil dihapus!");
+        showToast("Perangkat berhasil dihapus!", "success");
         window.location.reload();
       } else {
         throw new Error(result.message || "Gagal menghapus perangkat");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert(`Error: ${error.message}`);
+      showToast(`Error: ${error.message}`, "danger");
     }
   }
 </script>

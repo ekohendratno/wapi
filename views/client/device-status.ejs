@@ -1,188 +1,234 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="text-success"><i class="fa fa-mobile-alt me-2"></i>Status Perangkat</h4>
+  <h4 class="text-success">
+    <i class="fa fa-mobile-alt me-2"></i>Status Perangkat
+  </h4>
 </div>
 
 <div class="row">
-    <!-- Box Kiri -->
-    <div class="col-md-8">
-        <div class="stat-card">
-            <h5 class="mb-4"><i class="fa fa-info-circle me-2"></i>Informasi Perangkat</h5>
-            
-            <div class="mb-3">
-                <label>Device Key</label>
-                <p><strong><%= device.device_key %></strong></p>
-            </div>
-            <div class="mb-3">
-                <label>API Key</label>
-                <p><strong><%= apiKey || 'Tidak tersedia' %></strong></p>
-            </div>
-            <div class="mb-3">
-                <label>Nomor WhatsApp</label>
-                <p><strong><%= device.phone || 'Tidak tersedia' %></strong></p>
-            </div>
-            <div class="mb-3">
-                <label>Nama Akun WhatsApp</label>
-                <p><strong><%= device.name || 'Tidak tersedia' %></strong></p>
-            </div>
-            <div class="mb-3">
-                <label>Status Koneksi</label>
-                <p id="statusKoneksi" class="<%= device.status === 'tersambung' ? 'status-connected' : 'status-disconnected' %>">
-                    <%= device.status === 'tersambung' ? 'Tersambung' : 'Terputus' %>
-                </p>
-            </div>
-        </div>
+  <!-- Box Kiri -->
+  <div class="col-md-8">
+    <div class="stat-card">
+      <h5 class="mb-4">
+        <i class="fa fa-info-circle me-2"></i>Informasi Perangkat
+      </h5>
 
-        <div class="stat-card">
-            <h5 class="mb-4"><i class="fa fa-box me-2"></i>Paket & Fitur</h5>
-            
-            <div class="mb-3">
-                <label>Paket</label>
-                <p><strong>Premium</strong></p>
-            </div>
-            <div class="mb-3">
-                <label>Masa Aktif</label>
-                <p><strong>30 Hari Lagi</strong></p>
-            </div>
-            <div class="mb-3">
-                <label>Otomatis Baca?</label>
-                <p>
-                    <span id="otomatisBaca">Ya</span>
-                    <button class="btn btn-sm btn-outline-primary" onclick="toggleFitur('otomatisBaca')">Nonaktifkan</button>
-                </p>
-            </div>
-            <div class="mb-3">
-                <label>Otomatis Perpanjang?</label>
-                <p>
-                    <span id="otomatisPerpanjang">Tidak</span>
-                    <button class="btn btn-sm btn-outline-primary" onclick="toggleFitur('otomatisPerpanjang')">Aktifkan</button>
-                </p>
-            </div>
-        </div>
+      <div class="mb-3">
+        <label>Device Key</label>
+        <p><strong><%= device.device_key %></strong></p>
+      </div>
+      <div class="mb-3">
+        <label>API Key</label>
+        <p><strong><%= apiKey || 'Tidak tersedia' %></strong></p>
+      </div>
+      <div class="mb-3">
+        <label>Nomor WhatsApp</label>
+        <p><strong><%= device.phone || 'Tidak tersedia' %></strong></p>
+      </div>
+      <div class="mb-3">
+        <label>Nama Akun WhatsApp</label>
+        <p><strong><%= device.name || 'Tidak tersedia' %></strong></p>
+      </div>
+      <div class="mb-3">
+        <label>Status Koneksi</label>
+        <p
+          id="statusKoneksi"
+          class="<%= device.status === 'tersambung' ? 'status-connected' : 'status-disconnected' %>"
+        >
+          <%= device.status === 'tersambung' ? 'Tersambung' : 'Terputus' %>
+        </p>
+      </div>
     </div>
 
-    <!-- Box Kanan -->
-    <div class="col-md-4">
-        <div class="stat-card" id="qrcodeDiv">
-            <h5 class="mb-4"><i class="fa fa-qrcode me-2"></i>QR Code</h5>
-            
-            <div class="qr-code text-center mb-3">
-                <img id="qrcode" src="https://assets.kompasiana.com/items/album/2020/05/05/websiteqrcode-noframe-5eb083b0d541df2582287932.png?t=o&v=300" alt="QR Code">
-            </div>
-            <p id="qrcode-text">Scan QR Code di atas menggunakan aplikasi WhatsApp untuk menyambungkan perangkat.</p>
+    <div class="stat-card">
+      <h5 class="mb-4"><i class="fa fa-box me-2"></i>Paket & Fitur</h5>
+
+      <div class="mb-3">
+        <label>Paket</label>
+        <p><strong>Premium</strong></p>
+      </div>
+      <div class="mb-3">
+        <label>Masa Aktif</label>
+        <p><strong>30 Hari Lagi</strong></p>
+      </div>
+      <div class="mb-3">
+        <label>Otomatis Baca?</label>
+        <p>
+          <span id="otomatisBaca">Ya</span>
+          <button
+            class="btn btn-sm btn-outline-primary"
+            onclick="toggleFitur('otomatisBaca')"
+          >
+            Nonaktifkan
+          </button>
+        </p>
+      </div>
+      <div class="mb-3">
+        <label>Otomatis Perpanjang?</label>
+        <p>
+          <span id="otomatisPerpanjang">Tidak</span>
+          <button
+            class="btn btn-sm btn-outline-primary"
+            onclick="toggleFitur('otomatisPerpanjang')"
+          >
+            Aktifkan
+          </button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Box Kanan -->
+  <div class="col-md-4">
+    <div class="stat-card" id="qrcodeDiv">
+      <h5 class="mb-4"><i class="fa fa-qrcode me-2"></i>QR Code</h5>
+
+      <div class="qr-code text-center mb-3">
+        <!-- Loader -->
+        <div id="qrLoader" class="text-center">
+          <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Sedang memuat QR Code...</p>
         </div>
 
-        <div class="stat-card">
-            <h5 class="mb-4"><i class="fa fa-list-ol me-2"></i>Tata Cara Scan QR Code</h5>
-            <ol>
-                <li>Buka aplikasi WhatsApp di ponsel Anda.</li>
-                <li>Klik menu titik tiga di pojok kanan atas.</li>
-                <li>Pilih "Perangkat Tertaut".</li>
-                <li>Arahkan kamera ke QR Code di atas.</li>
-                <li>Tunggu hingga koneksi berhasil.</li>
-            </ol>
-        </div>
+        <!-- QR Code -->
+        <img id="qrcode" src="" alt="QR Code" style="display: none" />
+
+        <!-- Pesan error -->
+        <p id="qrError" class="text-danger mt-2" style="display: none">
+          Gagal memuat QR Code.
+          <button class="btn btn-sm btn-outline-danger" onclick="fetchQRCode()">
+            Coba Lagi
+          </button>
+        </p>
+      </div>
+
+      <p id="qrcode-text">
+        Scan QR Code di atas menggunakan aplikasi WhatsApp untuk menyambungkan
+        perangkat.
+      </p>
     </div>
+
+    <div class="stat-card">
+      <h5 class="mb-4">
+        <i class="fa fa-list-ol me-2"></i>Tata Cara Scan QR Code
+      </h5>
+      <ol>
+        <li>Buka aplikasi WhatsApp di ponsel Anda.</li>
+        <li>Klik menu titik tiga di pojok kanan atas.</li>
+        <li>Pilih "Perangkat Tertaut".</li>
+        <li>Arahkan kamera ke QR Code di atas.</li>
+        <li>Tunggu hingga koneksi berhasil.</li>
+      </ol>
+    </div>
+  </div>
 </div>
 
-
 <script>
-    function ubahStatus(status) {
-        const statusElement = document.getElementById('statusKoneksi');
+  function ubahStatus(status) {
+    const statusElement = document.getElementById("statusKoneksi");
 
-        if (status === 'tersambung') {
-            statusElement.textContent = 'Tersambung';
-            statusElement.className = 'status-connected';
+    if (status === "tersambung") {
+      statusElement.textContent = "Tersambung";
+      statusElement.className = "status-connected";
+    } else {
+      statusElement.textContent = "Terputus";
+      statusElement.className = "status-disconnected";
+    }
+  }
+
+  function toggleFitur(fitur) {
+    const element = document.getElementById(fitur);
+    const tombol = element.nextElementSibling;
+
+    if (element.textContent === "Ya") {
+      element.textContent = "Tidak";
+      tombol.textContent = "Aktifkan";
+    } else {
+      element.textContent = "Ya";
+      tombol.textContent = "Nonaktifkan";
+    }
+  }
+
+  const socket = io();
+  const qrDiv = document.getElementById("qrcode");
+  const qrcodeDiv = document.getElementById("qrcodeDiv");
+  const key = "<%= deviceKey %>";
+
+  function fetchSessionStatus() {
+    $("#qrLoader").show();
+    $("#qrcode").hide();
+    $("#qrError").hide();
+
+    $.ajax({
+      url: `/session?key=${key}`,
+      method: "GET",
+      success: function (response) {
+        if (response.status && response.data.connected) {
+          ubahStatus("tersambung");
+          $("#qrLoader").hide();
+          $("#qrcodeDiv").hide(); // kalau sudah connect, QR nggak perlu
         } else {
-            statusElement.textContent = 'Terputus';
-            statusElement.className = 'status-disconnected';
+          ubahStatus("terputus");
+          $("#qrcodeDiv").show();
+          fetchQRCode();
         }
-    }
+      },
+      error: function () {
+        ubahStatus("terputus");
+        $("#qrLoader").hide();
+        $("#qrcode").hide();
+        $("#qrError").show();
+      },
+    });
+  }
 
-    function toggleFitur(fitur) {
-        const element = document.getElementById(fitur);
-        const tombol = element.nextElementSibling;
+  function fetchQRCode() {
+    $("#qrLoader").show();
+    $("#qrcode").hide();
+    $("#qrError").hide();
 
-        if (element.textContent === 'Ya') {
-            element.textContent = 'Tidak';
-            tombol.textContent = 'Aktifkan';
+    $.ajax({
+      url: `/session/scan?key=${key}`,
+      method: "GET",
+      success: function (response) {
+        if (response.status && response.qr) {
+          $("#qrcode")
+            .attr("src", response.qr + `?t=${Date.now()}`)
+            .show();
+          $("#qrLoader").hide();
         } else {
-            element.textContent = 'Ya';
-            tombol.textContent = 'Nonaktifkan';
+          $("#qrLoader").hide();
+          $("#qrError").show();
         }
-    }
-    
-    
-    const socket = io();
-    const qrDiv = document.getElementById("qrcode");
-    const qrcodeDiv= document.getElementById("qrcodeDiv");
-    const key = "<%= deviceKey %>";
-
-    function fetchSessionStatus() {
-        $.ajax({
-            url: `/session?key=${key}`,
-            method: "GET",
-            success: function(response) {
-                if (response.status && response.data.connected) {
-                    //updateStatus('success', '<i class="fa fa-check-circle"></i> WhatsApp Terhubung!');
-                    ubahStatus('tersambung');
-                    qrDiv.style.display = 'none';
-                    qrcodeDiv.style.display = 'none';
-                    
-                } else {
-                    ubahStatus('terputus');
-                    qrDiv.style.display = 'block';
-                    qrcodeDiv.style.display = 'block';
-                    //updateStatus('warning', '<i class="fa fa-exclamation-triangle"></i> Sesi belum terhubung');
-                    fetchQRCode();
-                }
-            },
-            error: function() {
-                ubahStatus('terputus');
-                qrDiv.style.display = 'block';
-                qrcodeDiv.style.display = 'block';
-                //updateStatus('danger', '<i class="fa fa-times-circle"></i> Gagal memuat status sesi');
-            }
-        });
-    }
-
-    function fetchQRCode() {
-        $.ajax({
-            url: `/session/scan?key=${key}`,
-            method: "GET",
-            success: function(response) {
-                if (response.status && response.qr) {
-                    qrDiv.src = response.qr + `?t=${Date.now()}`;
-                    //updateStatus('info', '<i class="fa fa-qrcode"></i> Scan QR Code berikut:');
-                    qrDiv.style.display = 'block';
-                    qrcodeDiv.style.display = 'block';
-                }
-            },
-            error: function() {
-                //updateStatus('danger', '<i class="fa fa-times-circle"></i> Gagal memuat QR Code');
-            }
-        });
-    }
-
-    socket.on("connection-status", (data) => {
-        if (data.key === key && data.connected) {            
-            ubahStatus('tersambung');
-            //updateStatus('success', '<i class="fa fa-check-circle"></i> WhatsApp Terhubung!');
-            qrDiv.style.display = 'block';
-            qrcodeDiv.style.display = 'none';
-        }
+      },
+      error: function () {
+        $("#qrLoader").hide();
+        $("#qrError").show();
+      },
     });
+  }
 
-    socket.on("qr-update", (data) => {
-        if (data.key === key && data.qr) {
-            qrDiv.src = data.qr + `?t=${Date.now()}`;
-            
-            ubahStatus('terputus');
-            //updateStatus('info', '<i class="fa fa-qrcode"></i> Scan QR Code berikut:');
-            qrDiv.style.display = 'block';
-            qrcodeDiv.style.display = 'block';
-        }
-    });
+  socket.on("connection-status", (data) => {
+    if (data.key === key && data.connected) {
+      ubahStatus("tersambung");
+      //updateStatus('success', '<i class="fa fa-check-circle"></i> WhatsApp Terhubung!');
+      qrDiv.style.display = "block";
+      qrcodeDiv.style.display = "none";
+    }
+  });
 
-    // Initial load
-    fetchSessionStatus();
+  socket.on("qr-update", (data) => {
+    if (data.key === key && data.qr) {
+      qrDiv.src = data.qr + `?t=${Date.now()}`;
+
+      ubahStatus("terputus");
+      //updateStatus('info', '<i class="fa fa-qrcode"></i> Scan QR Code berikut:');
+      qrDiv.style.display = "block";
+      qrcodeDiv.style.display = "block";
+    }
+  });
+
+  // Initial load
+  fetchSessionStatus();
 </script>
