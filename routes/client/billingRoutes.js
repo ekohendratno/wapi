@@ -39,5 +39,22 @@ module.exports = (billingManager) => {
         }
     });
 
+    // Get transaction detail for current user
+    router.get('/transaction/:merchantOrderId', async (req, res) => {
+        try {
+            const apiKey = req.session.user.api_key;
+            const { merchantOrderId } = req.params;
+            if (!merchantOrderId) return res.status(400).json({ success: false, message: 'merchantOrderId required' });
+
+            const tx = await billingManager.getTransactionByMerchantOrderId(apiKey, merchantOrderId);
+            if (!tx) return res.status(404).json({ success: false, message: 'Transaction not found' });
+
+            res.json({ success: true, data: tx });
+        } catch (err) {
+            console.error('Error fetching transaction detail:', err && err.message);
+            res.status(500).json({ success: false, message: 'Internal Server Error' });
+        }
+    });
+
     return router;
 };

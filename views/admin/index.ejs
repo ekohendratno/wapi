@@ -3,27 +3,25 @@
     <div class="col-md-4">
         <div class="stat-card">
             <h5>Saldo</h5>
-            <h2>Rp 0</h2>
+            <h2><%= (stats && stats.totalBalance ? stats.totalBalance : 0).toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) %></h2>
             <small class="text-muted">
-                Update 0
+                Update: <%= stats && stats.balanceLastUpdate ? stats.balanceLastUpdate : '-' %>
             </small>
         </div>
     </div>
     <div class="col-md-4">
         <div class="stat-card">
             <h5>Perangkat Aktif</h5>
-            <h2>0evice</h2>
+            <h2><%= stats ? stats.activeDevices : 0 %></h2>
             <small class="text-muted">
-                Terakhir aktif: 0
+                Total perangkat: <%= stats ? stats.totalDevices : 0 %>
             </small>
         </div>
     </div>
     <div class="col-md-4">
         <div class="stat-card">
             <h5>Total Pesan</h5>
-            <h2>
-                0
-            </h2>
+            <h2><%= stats ? stats.messagesThisMonth : 0 %></h2>
             <small class="text-muted">Bulan ini</small>
         </div>
     </div>
@@ -46,14 +44,26 @@
             <h5>Status WhatsApp</h5>
             <div class="text-center my-4">
                 <i class="fab fa-whatsapp fa-3x text-success mb-3"></i>
-                <h4>Connected</h4>
-                <small class="text-muted">Terhubung ke device</small>
+                    <h4>Connected</h4>
+                    <small class="text-muted">Terhubung ke device</small>
             </div>
         </div>
         <div class="stat-card">
             <h5>Pesan Terakhir</h5>
             <div class="mt-3">
-            </div>
+                    <% if (stats && stats.recentMessages && stats.recentMessages.length > 0) { %>
+                        <ul class="list-group">
+                            <% stats.recentMessages.forEach(function(m) { %>
+                                <li class="list-group-item">
+                                    <div><strong><%= m.device_name || 'Unknown' %></strong> — <small class="text-muted"><%= new Date(m.created_at).toLocaleString() %></small></div>
+                                    <div class="small"><%= (m.message || '').length > 120 ? (m.message.substring(0,120) + '...') : m.message %></div>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    <% } else { %>
+                        <div class="text-muted">Belum ada pesan terakhir.</div>
+                    <% } %>
+                </div>
         </div>
         
     </div>
@@ -64,6 +74,46 @@
 
 
 <script>
-    
+    // Load Chart.js from CDN and render messageChart using admin API
+    (function(){
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+        script.onload = () => {
+            fetch('/admin/api/message-stats?days=14')
+                .then(r => r.json())
+                .then(payload => {
+                    const ctx = document.getElementById('messageChart').getContext('2d');
+                    const chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: payload.labels,
+                            datasets: [{
+                                label: 'Pesan per hari',
+                                data: payload.data,
+                                borderColor: '#28a745',
+                                backgroundColor: 'rgba(40,167,69,0.15)',
+                                tension: 0.2,
+                                fill: true,
+                                pointRadius: 3,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { display: true, title: { display: true, text: 'Tanggal' } },
+                                y: { display: true, title: { display: true, text: 'Jumlah Pesan' }, beginAtZero: true }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                    // Make canvas container a reasonable height
+                    const container = document.querySelector('.chart-container');
+                    if (container) container.style.height = '280px';
+                })
+                .catch(err => { console.warn('Could not load message stats:', err); });
+        };
+        document.head.appendChild(script);
+    })();
 </script>
 

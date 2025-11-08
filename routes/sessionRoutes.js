@@ -72,7 +72,7 @@ module.exports = (sessionManager) => {
     }
 
     try {
-      sessionManager.removeSession(key, true);
+      await sessionManager.removeSession(key, true);
     } catch (error) {
       console.error("Failed to delete session folder:", error);
       return res.status(500).json({
@@ -92,6 +92,7 @@ module.exports = (sessionManager) => {
 
   router.get("/scan", async (req, res) => {
     const { key } = req.query;
+    const force = String(req.query.force || '').toLowerCase() === 'true' || req.query.force === '1';
 
     if (!key) {
       return res
@@ -100,9 +101,26 @@ module.exports = (sessionManager) => {
     }
 
     try {
-      // Trigger session creation
+      // If force flag set, move existing creds.json out of the way so a fresh QR is generated.
+      if (force) {
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const sessionPath = path.join(sessionManager.folderSession || './.sessions', key);
+          const credsPath = path.join(sessionPath, 'creds.json');
+          if (fs.existsSync(credsPath)) {
+            const bak = path.join(sessionPath, `creds.json.bak.${Date.now()}`);
+            await fs.promises.rename(credsPath, bak);
+            console.log(`[sessionRoutes] Backed up creds.json for ${key} -> ${bak}`);
+          }
+        } catch (e) {
+          console.warn(`[sessionRoutes] Failed to backup creds for ${key}:`, e && e.message);
+        }
+      }
+
+      // Trigger session creation (async)
       sessionManager.createSession(key).catch((err) => {
-        console.error(`Failed to start session ${key}:`, err.message);
+        console.error(`Failed to start session ${key}:`, err && err.message);
       });
 
       // Tunggu maksimal 15 detik untuk dapat QR
@@ -129,6 +147,13 @@ module.exports = (sessionManager) => {
         return res
           .status(500)
           .json({ status: false, message: "Session creation failed." });
+      }
+
+      // If the session reports an error, return it to the client for diagnostics
+      if (session.error) {
+        const errMsg = session.lastError || 'Unknown session error';
+        console.warn(`[sessionRoutes] session ${key} reports error: ${errMsg}`);
+        return res.status(500).json({ status: false, message: `Session error: ${errMsg}` });
       }
 
       if (session.connected) {

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../../lib/Utils.js');
+const moment = require('moment-timezone');
 
 module.exports = ({sessionManager, deviceManager, billingManager}) => {
 
@@ -13,15 +14,28 @@ module.exports = ({sessionManager, deviceManager, billingManager}) => {
             const devicesWithLastActive = await deviceManager.getDevicesWithLastActive(apiKey);
             const activeDeviceCount = await deviceManager.getActiveDeviceCount(apiKey);
 
-            res.render("client/device", {
-                countDeviceLast: devicesWithLastActive,
-                countDevice: activeDeviceCount,
-                devices: devices || [],
-                packages: packages || [],
-                apiKey: apiKey,
-                title: "Device - w@pi",
-                layout: "layouts/client"
-            });
+                        // Build a simple device history from devices (latest updated first)
+                        const deviceHistory = (devices || [])
+                            .slice()
+                            .sort((a,b) => new Date(b.updated_at) - new Date(a.updated_at))
+                            .slice(0, 10)
+                            .map(d => ({
+                                device_key: d.device_key,
+                                status: d.status,
+                                when: d.updated_at ? moment(d.updated_at).tz('Asia/Jakarta').fromNow() : '-',
+                                note: d.name || ''
+                            }));
+
+                        res.render("client/device", {
+                                countDeviceLast: devicesWithLastActive,
+                                countDevice: activeDeviceCount,
+                                devices: devices || [],
+                                packages: packages || [],
+                                apiKey: apiKey,
+                                deviceHistory: deviceHistory,
+                                title: "Device - w@pi",
+                                layout: "layouts/client"
+                        });
         } catch (error) {
             console.error('Error:', error);
             res.status(500).send("Internal Server Error");

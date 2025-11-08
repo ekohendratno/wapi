@@ -14,14 +14,12 @@ process.on("uncaughtExceptionMonitor", (error) => {
 
 const path = require("path");
 const { Boom } = require("@hapi/boom");
-const {
-  default: makeWASocket,
-  useMultiFileAuthState,
-  DisconnectReason,
-} = require("@whiskeysockets/baileys");
+// Note: @whiskeysockets/baileys is ESM-only in modern versions.
+// We dynamically import it inside the session manager to avoid
+// ERR_REQUIRE_ESM when running under CommonJS.
 const pino = require("pino");
 const express = require("express");
-const bodyParser = require("body-parser");
+// body-parser deprecated: prefer built-in express middleware
 const qrcode = require("qrcode");
 const http = require("http");
 const socketIO = require("socket.io");
@@ -35,7 +33,7 @@ const dbConfig = require("./config");
 const pool = mysql.createPool(dbConfig);
 
 const InitData = require("./lib/InitData.js");
-const SessionManager = require("./lib/SessionsManager.js");
+const SessionManager = require("./lib/SessionsManager_v2.js");
 const BillingManager = require("./lib/BillingManager");
 const CronManager = require("./lib/CronManager.js");
 const CronGroupManager = require("./lib/CronGroupManager.js");
@@ -61,8 +59,8 @@ const io = socketIO(server, {
   pingInterval: 25000,
 });
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(expressLayouts);
 app.use(express.static(path.join(__dirname, "public")));
 app.set("view engine", "ejs");
@@ -131,13 +129,15 @@ const billingManager = new BillingManager(pool);
 const messageManager = new MessageManager(pool, sessionManager);
 const userManager = new UserManager(pool);
 const autoreplyManager = new AutoReplyManager(pool);
-const cronManager = new CronManager(pool, messageManager, sessionManager);
+const cronManager = new CronManager(pool, messageManager, sessionManager, billingManager);
 const cronGroupManager = new CronGroupManager(pool, sessionManager);
+const SessionWatcher = require("./lib/SessionWatcher");
+const sessionWatcher = new SessionWatcher(sessionManager, folderSession);
 
 // Routes Admin
-const indexAdminRoutes = require("./routes/admin/indexRoutes.js")();
-const packageAdminRoutes = require("./routes/admin/packageRoutes.js")();
-const billingAdminRoutes = require("./routes/admin/billingRoutes.js")();
+const indexAdminRoutes = require("./routes/admin/indexRoutes.js")({ pool, billingManager, deviceManager, messageManager, sessionManager, userManager });
+const packageAdminRoutes = require("./routes/admin/packageRoutes.js")(billingManager, pool);
+const billingAdminRoutes = require("./routes/admin/billingRoutes.js")(billingManager);
 app.use("/admin", requireRole("admin"), indexAdminRoutes);
 app.use("/admin/package", requireRole("admin"), packageAdminRoutes);
 app.use("/admin/billing", requireRole("admin"), billingAdminRoutes);
@@ -282,6 +282,13 @@ setTimeout(() => {
   cronManager.initCrons();
 }, 5000);
 
+// Start session watcher to detect manual folder deletions
+try {
+  sessionWatcher.init();
+} catch (err) {
+  console.warn('SessionWatcher init failed:', err && err.message);
+}
+
 
 // Tambahkan di atas server.listen()
 const os = require("os");
@@ -305,40 +312,67 @@ server.listen(PORT, () => {
 
 
 // Graceful shutdown
+let isShuttingDown = false;
 const shutdown = async (signal) => {
+  if (isShuttingDown) {
+    console.log(`Already shutting down, ignoring ${signal}`);
+    return;
+  }
+  isShuttingDown = true;
+
   console.log(`\n${signal} received. Shutting down gracefully...`);
 
-  // Hentikan cron
-  console.log("🛑 Stopping cron jobs...");
-  // Jika CronManager punya method stop(), panggil di sini
-  // await cronManager.stop();
-
-  // Tutup semua session
-  console.log("🔌 Closing all WhatsApp sessions...");
-  const sessions = sessionManager.getAllSessions();
-  for (const key in sessions) {
-    try {
-      await sessionManager.removeSession(key, false);
-    } catch (err) {
-      console.warn(`Failed to close session ${key}:`, err.message);
+  try {
+    // Hentikan cron
+    console.log("🛑 Stopping cron jobs...");
+    if (cronManager && typeof cronManager.stop === "function") {
+      await cronManager.stop();
     }
-  }
 
-  // Tutup koneksi database
-  console.log("💾 Closing database pool...");
-  await pool.end();
+    // Stop session watcher
+    if (sessionWatcher && typeof sessionWatcher.stop === 'function') {
+      await sessionWatcher.stop();
+      console.log('Session watcher stopped.');
+    }
 
-  // Tutup server
-  server.close(() => {
-    console.log("✅ Server closed gracefully.");
-    process.exit(0);
-  });
+    // Tutup semua session
+    console.log("🔌 Closing all WhatsApp sessions...");
+    if (sessionManager && typeof sessionManager.closeAllSessions === "function") {
+      await sessionManager.closeAllSessions();
+    } else {
+      const sessions = sessionManager.getAllSessions();
+      for (const key in sessions) {
+        try {
+          await sessionManager.removeSession(key, false);
+        } catch (err) {
+          console.warn(`Failed to close session ${key}:`, err.message);
+        }
+      }
+    }
 
-  // Force exit setelah 10 detik
-  setTimeout(() => {
-    console.error("❌ Could not close gracefully. Forcing exit.");
+    // Tutup koneksi database
+    console.log("💾 Closing database pool...");
+    try {
+      await pool.end();
+    } catch (err) {
+      console.warn("Error while closing DB pool:", err && err.message);
+    }
+
+    // Tutup server
+    server.close(() => {
+      console.log("✅ Server closed gracefully.");
+      process.exit(0);
+    });
+
+    // Force exit setelah 10 detik
+    setTimeout(() => {
+      console.error("❌ Could not close gracefully. Forcing exit.");
+      process.exit(1);
+    }, 10000);
+  } catch (err) {
+    console.error("Shutdown error:", err && err.message);
     process.exit(1);
-  }, 10000);
+  }
 };
 
 process.on("SIGINT", () => shutdown("SIGINT"));

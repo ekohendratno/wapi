@@ -46,7 +46,7 @@
           <tbody>
             <% if (!devices || devices.length===0) { %>
             <tr>
-              <td colspan="5" class="text-center">
+              <td colspan="7" class="text-center">
                 Tidak ada device terdaftar
               </td>
             </tr>
@@ -128,17 +128,22 @@
   <div class="col-md-12">
     <div class="stat-card">
       <h5 class="mb-4"><i class="fa fa-history me-2"></i>Riwayat Perangkat</h5>
-      <ul class="list-group">
-        <li class="list-group-item">
-          Perangkat 123456 diaktifkan - 10 menit lalu
-        </li>
-        <li class="list-group-item">
-          Perangkat 789012 dinonaktifkan - 30 menit lalu
-        </li>
-        <li class="list-group-item">
-          Perangkat 456789 ditambahkan - 1 jam lalu
-        </li>
-      </ul>
+        <ul class="list-group">
+          <% if (typeof deviceHistory !== 'undefined' && deviceHistory.length>0) { %>
+            <% deviceHistory.forEach(h => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <strong><%= h.device_key %></strong>
+                  <div class="text-muted small"><%= h.note %></div>
+                  <div>Status: <em><%= h.status %></em></div>
+                </div>
+                <div class="text-end text-muted small"><%= h.when %></div>
+              </li>
+            <% }) %>
+          <% } else { %>
+              <li class="list-group-item">Belum ada riwayat perangkat.</li>
+          <% } %>
+        </ul>
     </div>
   </div>
 </div>

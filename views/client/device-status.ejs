@@ -91,15 +91,20 @@
           <p class="mt-2">Sedang memuat QR Code...</p>
         </div>
 
-        <!-- QR Code -->
-        <img id="qrcode" src="" alt="QR Code" style="display: none" />
+  <!-- QR Code -->
+  <img id="qrcode" src="" alt="QR Code" class="img-fluid d-block mx-auto" style="display: none; max-width: 260px;" />
 
         <!-- Pesan error -->
         <p id="qrError" class="text-danger mt-2" style="display: none">
-          Gagal memuat QR Code.
-          <button class="btn btn-sm btn-outline-danger" onclick="fetchQRCode()">
-            Coba Lagi
-          </button>
+          <span id="qrErrorMsg">Gagal memuat QR Code.</span>
+          <div class="mt-2">
+            <button class="btn btn-sm btn-outline-danger" onclick="fetchQRCode()">
+              Coba Lagi
+            </button>
+            <button class="btn btn-sm btn-danger ms-2" onclick="fetchQRCode(true)">
+              Force Reset & Scan
+            </button>
+          </div>
         </p>
       </div>
 
@@ -183,13 +188,16 @@
     });
   }
 
-  function fetchQRCode() {
+  function fetchQRCode(force = false) {
     $("#qrLoader").show();
     $("#qrcode").hide();
     $("#qrError").hide();
+    $("#qrErrorMsg").text('Gagal memuat QR Code.');
+
+    const url = `/session/scan?key=${key}` + (force ? '&force=1' : '');
 
     $.ajax({
-      url: `/session/scan?key=${key}`,
+      url: url,
       method: "GET",
       success: function (response) {
         if (response.status && response.qr) {
@@ -199,11 +207,15 @@
           $("#qrLoader").hide();
         } else {
           $("#qrLoader").hide();
+          if (response && response.message) $("#qrErrorMsg").text(response.message);
           $("#qrError").show();
         }
       },
-      error: function () {
+      error: function (xhr) {
         $("#qrLoader").hide();
+        let msg = 'Gagal memuat QR Code.';
+        try { if (xhr && xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message; } catch (e) {}
+        $("#qrErrorMsg").text(msg);
         $("#qrError").show();
       },
     });
@@ -213,6 +225,10 @@
     if (data.key === key && data.connected) {
       ubahStatus("tersambung");
       //updateStatus('success', '<i class="fa fa-check-circle"></i> WhatsApp Terhubung!');
+      // hide QR area when connected
+      $("#qrLoader").hide();
+      $("#qrError").hide();
+      $("#qrcode").hide();
       qrDiv.style.display = "block";
       qrcodeDiv.style.display = "none";
     }
@@ -220,10 +236,12 @@
 
   socket.on("qr-update", (data) => {
     if (data.key === key && data.qr) {
-      qrDiv.src = data.qr + `?t=${Date.now()}`;
+      // update image and ensure error messages are hidden
+      $("#qrcode").attr("src", data.qr + `?t=${Date.now()}`).show();
+      $("#qrLoader").hide();
+      $("#qrError").hide();
 
       ubahStatus("terputus");
-      //updateStatus('info', '<i class="fa fa-qrcode"></i> Scan QR Code berikut:');
       qrDiv.style.display = "block";
       qrcodeDiv.style.display = "block";
     }
