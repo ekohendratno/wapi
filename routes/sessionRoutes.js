@@ -63,12 +63,10 @@ module.exports = (sessionManager) => {
     }
     const session = sessionManager.getSession(key);
     if (!session) {
-      return res
-        .status(404)
-        .json({
-          status: false,
-          message: `Session with key "${key}" not found.`,
-        });
+      return res.status(404).json({
+        status: false,
+        message: `Session with key "${key}" not found.`,
+      });
     }
 
     try {
@@ -92,7 +90,9 @@ module.exports = (sessionManager) => {
 
   router.get("/scan", async (req, res) => {
     const { key } = req.query;
-    const force = String(req.query.force || '').toLowerCase() === 'true' || req.query.force === '1';
+    let force =
+      String(req.query.force || "").toLowerCase() === "true" ||
+      req.query.force === "1";
 
     if (!key) {
       return res
@@ -101,21 +101,40 @@ module.exports = (sessionManager) => {
     }
 
     try {
-      // If force flag set, move existing creds.json out of the way so a fresh QR is generated.
-      if (force) {
-        try {
-          const fs = require('fs');
-          const path = require('path');
-          const sessionPath = path.join(sessionManager.folderSession || './.sessions', key);
-          const credsPath = path.join(sessionPath, 'creds.json');
-          if (fs.existsSync(credsPath)) {
-            const bak = path.join(sessionPath, `creds.json.bak.${Date.now()}`);
-            await fs.promises.rename(credsPath, bak);
-            console.log(`[sessionRoutes] Backed up creds.json for ${key} -> ${bak}`);
-          }
-        } catch (e) {
-          console.warn(`[sessionRoutes] Failed to backup creds for ${key}:`, e && e.message);
+      const fs = require("fs");
+      const path = require("path");
+
+      // Resolve session path (ensure it works even if folderSession is relative)
+      const baseFolder = sessionManager.folderSession || "./.sessions";
+      const sessionPath = path.isAbsolute(baseFolder)
+        ? path.join(baseFolder, key)
+        : path.join(process.cwd(), baseFolder, key);
+
+      // Automatically force fresh session if current one is recorded as logged out
+      const existingSession = sessionManager.getSession(key);
+      if (
+        (existingSession &&
+          existingSession.error &&
+          existingSession.lastError &&
+          existingSession.lastError.includes("loggedOut")) ||
+        force
+      ) {
+        console.log(
+          `[sessionRoutes] Session ${key} logout/force detected. Cleaning up for fresh QR generation.`
+        );
+
+        // Use removeSession to safely close socket and delete the entire session folder
+        // We pass 'disconnected' to avoid marking it as 'removed' in the DB if we can help it,
+        // though DeviceManager might still update status.
+        await sessionManager.removeSession(key, true, "disconnected");
+
+        // Ensure the directory exists for the fresh start
+        if (!fs.existsSync(sessionPath)) {
+          fs.mkdirSync(sessionPath, { recursive: true });
         }
+
+        // Reset force to false since we've already cleaned up
+        force = false;
       }
 
       // Trigger session creation (async)
@@ -123,37 +142,58 @@ module.exports = (sessionManager) => {
         console.error(`Failed to start session ${key}:`, err && err.message);
       });
 
-      // Tunggu maksimal 15 detik untuk dapat QR
+      // Wait for QR or connection
       const timeoutMs = 15000;
       const checkIntervalMs = 1000;
-
       let elapsed = 0;
-      let session = sessionManager.getSession(key);
+      let hasAutoReset = false;
 
-      while (
-        elapsed < timeoutMs &&
-        session &&
-        !session.connected &&
-        !session.qr
-      ) {
+      while (elapsed < timeoutMs) {
+        let session = sessionManager.getSession(key);
+
+        // If session is already connected or has a QR, we're done
+        if (session && (session.connected || session.qr)) break;
+
+        // Proactive detection of logout or fatal errors during wait
+        if (
+          session &&
+          session.error &&
+          session.lastError &&
+          session.lastError.includes("loggedOut")
+        ) {
+          if (!hasAutoReset) {
+            console.log(
+              `[sessionRoutes] Session ${key} logged out during wait. Triggering auto-reset...`
+            );
+            await sessionManager.removeSession(key, true, "disconnected");
+
+            // Ensure directory exists for fresh start
+            if (!fs.existsSync(sessionPath))
+              fs.mkdirSync(sessionPath, { recursive: true });
+
+            // Clear state and restart
+            sessionManager.createSession(key).catch(() => {});
+            hasAutoReset = true;
+            // Wait a bit more to see if it starts up
+            await new Promise((r) => setTimeout(r, 1000));
+            elapsed += 1000;
+            continue;
+          } else {
+            // Already tried resetting once, if it's still failing, we should report it but maybe not as 500
+            break;
+          }
+        }
+
         await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
         elapsed += checkIntervalMs;
-        session = sessionManager.getSession(key);
       }
 
-      session = sessionManager.getSession(key);
+      let session = sessionManager.getSession(key);
 
       if (!session) {
         return res
           .status(500)
           .json({ status: false, message: "Session creation failed." });
-      }
-
-      // If the session reports an error, return it to the client for diagnostics
-      if (session.error) {
-        const errMsg = session.lastError || 'Unknown session error';
-        console.warn(`[sessionRoutes] session ${key} reports error: ${errMsg}`);
-        return res.status(500).json({ status: false, message: `Session error: ${errMsg}` });
       }
 
       if (session.connected) {
@@ -169,6 +209,26 @@ module.exports = (sessionManager) => {
           status: true,
           qr: session.qr,
         });
+      }
+
+      // If the session reports an error (especially after our reset attempt)
+      if (session.error) {
+        const errMsg = session.lastError || "Unknown session error";
+        console.warn(`[sessionRoutes] session ${key} reports error: ${errMsg}`);
+
+        // If it's a logout, we treat it as "needs retry" rather than fatal 500
+        if (errMsg.includes("loggedOut")) {
+          return res.status(202).json({
+            status: false,
+            message:
+              "Session was reset due to logout. Please wait a moment while we generate a new QR.",
+            action: "retry",
+          });
+        }
+
+        return res
+          .status(500)
+          .json({ status: false, message: `Session error: ${errMsg}` });
       }
 
       // Jika timeout

@@ -205,6 +205,13 @@
             .attr("src", response.qr + `?t=${Date.now()}`)
             .show();
           $("#qrLoader").hide();
+        } else if (response.action === "retry") {
+          // Auto retry after 3 seconds if server asks for it
+          console.log("Server requested retry, waiting 3s...");
+          $("#qrErrorMsg").text(response.message || "Sedang menyiapkan sesi baru...");
+          $("#qrError").show(); // Show status message but keep loader? 
+          // Actually let's just keep the loader and hide the error div after a bit
+          setTimeout(() => fetchQRCode(force), 3000);
         } else {
           $("#qrLoader").hide();
           if (response && response.message) $("#qrErrorMsg").text(response.message);
