@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "wapi",
       script: "./index.js",
-      cwd: "/Users/dava/Development/Node/wa01mysql",  // path kerja project
+      cwd: "/Users/DAVA/Documents/Node/wa01mysql",  // path kerja project
       watch: false,
       autorestart: true,
       max_memory_restart: "1024M",

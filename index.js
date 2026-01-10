@@ -10,8 +10,6 @@ process.on("uncaughtExceptionMonitor", (error) => {
   console.error("[Critical Error]", error);
 });
 
-
-
 const path = require("path");
 const { Boom } = require("@hapi/boom");
 // Note: @whiskeysockets/baileys is ESM-only in modern versions.
@@ -75,16 +73,22 @@ app.use(
 );
 
 const session = require("express-session");
-app.set('trust proxy', 1); // Aktifkan jika pakai Nginx/Cloudflare
+const MySQLStore = require("express-mysql-session")(session);
+const sessionStore = new MySQLStore({}, pool); // pool is already created using mysql2/promise
+
+app.set("trust proxy", 1); // Aktifkan jika pakai Nginx/Cloudflare
 
 app.use(
   session({
+    store: sessionStore,
     secret: process.env.SESSION_SECRET || "fallback-secret-for-dev-only-123",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production" && 
-              (process.env.SERVER_URL?.startsWith("https") || process.env.FORCE_SECURE_COOKIE === "true"),
+      secure:
+        process.env.NODE_ENV === "production" &&
+        (process.env.SERVER_URL?.startsWith("https") ||
+          process.env.FORCE_SECURE_COOKIE === "true"),
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 jam
       sameSite: "lax",
@@ -93,8 +97,6 @@ app.use(
     name: "wapi.sid", // Opsional: ganti nama cookie
   })
 );
-
-
 
 const moment = require("moment");
 const momentTimezone = require("moment-timezone");
@@ -129,15 +131,32 @@ const billingManager = new BillingManager(pool);
 const messageManager = new MessageManager(pool, sessionManager);
 const userManager = new UserManager(pool);
 const autoreplyManager = new AutoReplyManager(pool);
-const cronManager = new CronManager(pool, messageManager, sessionManager, billingManager);
+const cronManager = new CronManager(
+  pool,
+  messageManager,
+  sessionManager,
+  billingManager
+);
 const cronGroupManager = new CronGroupManager(pool, sessionManager);
 const SessionWatcher = require("./lib/SessionWatcher");
 const sessionWatcher = new SessionWatcher(sessionManager, folderSession);
 
 // Routes Admin
-const indexAdminRoutes = require("./routes/admin/indexRoutes.js")({ pool, billingManager, deviceManager, messageManager, sessionManager, userManager });
-const packageAdminRoutes = require("./routes/admin/packageRoutes.js")(billingManager, pool);
-const billingAdminRoutes = require("./routes/admin/billingRoutes.js")(billingManager);
+const indexAdminRoutes = require("./routes/admin/indexRoutes.js")({
+  pool,
+  billingManager,
+  deviceManager,
+  messageManager,
+  sessionManager,
+  userManager,
+});
+const packageAdminRoutes = require("./routes/admin/packageRoutes.js")(
+  billingManager,
+  pool
+);
+const billingAdminRoutes = require("./routes/admin/billingRoutes.js")(
+  billingManager
+);
 app.use("/admin", requireRole("admin"), indexAdminRoutes);
 app.use("/admin/package", requireRole("admin"), packageAdminRoutes);
 app.use("/admin/billing", requireRole("admin"), billingAdminRoutes);
@@ -224,10 +243,12 @@ app.get("/health", async (req, res) => {
   try {
     // Cek koneksi database
     await pool.query("SELECT 1");
-    
+
     // Cek minimal 1 session aktif
     const sessions = sessionManager.getAllSessions();
-    const activeSessions = Object.values(sessions).filter(s => s.connected).length;
+    const activeSessions = Object.values(sessions).filter(
+      (s) => s.connected
+    ).length;
 
     res.json({
       status: "OK",
@@ -242,21 +263,20 @@ app.get("/health", async (req, res) => {
   }
 });
 
-
-
 // Global error handler (Express)
 app.use((err, req, res, next) => {
   console.error("Express Error:", err.stack);
-  
+
   if (res.headersSent) {
     return next(err);
   }
 
   res.status(500).json({
     error: "Internal Server Error",
-    message: process.env.NODE_ENV === "production" 
-      ? "Terjadi kesalahan pada server" 
-      : err.message
+    message:
+      process.env.NODE_ENV === "production"
+        ? "Terjadi kesalahan pada server"
+        : err.message,
   });
 });
 
@@ -264,52 +284,51 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({
     error: "Not Found",
-    message: "Endpoint tidak ditemukan"
+    message: "Endpoint tidak ditemukan",
   });
 });
 
-
 // Menjadi:
-setTimeout(() => {
-  initData.initDatabase();
-}, 1000);
+// Start Server Function
+const startServer = async () => {
+  try {
+    // 1. Initialize Database
+    console.log("🔄 Initializing Database...");
+    await initData.initDatabase();
+    console.log("✅ Database initialized.");
 
-setTimeout(() => {
-  sessionManager.initSessions();
-}, 3000);
+    // 2. Initialize Sessions (Parallel loading happens inside)
+    console.log("🔄 Initializing Sessions...");
+    await sessionManager.initSessions();
+    console.log("✅ Sessions initialized.");
 
-setTimeout(() => {
-  cronManager.initCrons();
-}, 5000);
+    // 3. Initialize Crons
+    console.log("🔄 Initializing Crons...");
+    cronManager.initCrons();
+    console.log("✅ Crons initialized.");
 
-// Start session watcher to detect manual folder deletions
-try {
-  sessionWatcher.init();
-} catch (err) {
-  console.warn('SessionWatcher init failed:', err && err.message);
-}
+    // 4. Start Session Watcher
+    try {
+      sessionWatcher.init();
+    } catch (err) {
+      console.warn("SessionWatcher init failed:", err.message);
+    }
 
+    // 5. Start Server
+    const PORT = process.env.SERVER_PORT || 3000;
+    const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
 
-// Tambahkan di atas server.listen()
-const os = require("os");
+    server.listen(PORT, () => {
+      console.log(`🚀 WhatsApp Gateway running on ${SERVER_URL}`);
+      console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+    });
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
+};
 
-// Monitor memory usage setiap 5 detik
-setInterval(() => {
-  const usedHeap = process.memoryUsage().heapUsed / 1024 / 1024; // MB
-  const totalHeap = process.memoryUsage().heapTotal / 1024 / 1024; // MB
-  const heapUsagePercent = (usedHeap / totalHeap) * 100;
-
-  console.log(`📊 Memory Usage: ${usedHeap.toFixed(2)}MB / ${totalHeap.toFixed(2)}MB (${heapUsagePercent.toFixed(1)}%)`);
-}, 5000);
-
-
-// cronGroupManager.initCrons();
-const PORT = process.env.SERVER_PORT;
-const SERVER_URL = process.env.SERVER_URL;
-server.listen(PORT, () => {
-  console.log(`WhatsApp Gateway running on ${SERVER_URL}`);
-});
-
+startServer();
 
 // Graceful shutdown
 let isShuttingDown = false;
@@ -330,14 +349,17 @@ const shutdown = async (signal) => {
     }
 
     // Stop session watcher
-    if (sessionWatcher && typeof sessionWatcher.stop === 'function') {
+    if (sessionWatcher && typeof sessionWatcher.stop === "function") {
       await sessionWatcher.stop();
-      console.log('Session watcher stopped.');
+      console.log("Session watcher stopped.");
     }
 
     // Tutup semua session
     console.log("🔌 Closing all WhatsApp sessions...");
-    if (sessionManager && typeof sessionManager.closeAllSessions === "function") {
+    if (
+      sessionManager &&
+      typeof sessionManager.closeAllSessions === "function"
+    ) {
       await sessionManager.closeAllSessions();
     } else {
       const sessions = sessionManager.getAllSessions();
