@@ -1,0 +1,238 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="text-success"><i class="fa fa-users me-2"></i>User Management</h4>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="stat-card">
+      <h5 class="mb-3"><i class="fa fa-list me-2"></i>Daftar Pengguna</h5>
+      <% if (users && users.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>UID</th>
+              <th>Nama</th>
+              <th>Email</th>
+              <th>No. HP</th>
+              <th>Status</th>
+              <th>Online</th>
+              <th>Terdaftar</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(function(u) { %>
+            <tr>
+              <td><%= u.uid %></td>
+              <td><%= u.name %></td>
+              <td><%= u.email %></td>
+              <td><%= u.phone || '-' %></td>
+              <td>
+                <% if (u.status === 'active') { %>
+                <span class="badge bg-success">Active</span>
+                <% } else { %>
+                <span class="badge bg-secondary"><%= u.status %></span>
+                <% } %>
+              </td>
+              <td>
+                <% if (u.last_active) { %>
+                <small title="<%= new Date(u.last_active).toLocaleString() %>">
+                  <%= new Date(u.last_active).toLocaleString() %>
+                </small>
+                <% } else { %>
+                <span class="text-muted">-</span>
+                <% } %>
+              </td>
+              <td><%= new Date(u.created_at).toLocaleDateString() %></td>
+              <td>
+                <button
+                  class="btn btn-sm btn-primary"
+                  onclick="editUser('<%= u.uid %>')"
+                >
+                  Edit
+                </button>
+                <button
+                  class="btn btn-sm btn-danger ms-1"
+                  onclick="hapusUser('<%= u.uid %>')"
+                >
+                  Del
+                </button>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } else { %>
+      <div class="alert alert-info">Belum ada user.</div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Button -->
+<button class="floating-button" onclick="formTambahUser()">
+  <i class="fas fa-plus"></i>
+</button>
+
+<!-- Form Modal -->
+<div id="formUser" class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah/Edit User</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="userForm">
+          <input type="hidden" id="userId" value="0" />
+          <div class="mb-3">
+            <label>Nama</label>
+            <input type="text" id="userName" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label>Email</label>
+            <input type="email" id="userEmail" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label>Phone</label>
+            <input
+              type="text"
+              id="userPhone"
+              class="form-control"
+              placeholder="628xxx"
+            />
+          </div>
+          <div class="mb-3">
+            <label>Password</label>
+            <input
+              type="text"
+              id="userPass"
+              class="form-control"
+              placeholder="Biarkan kosong jika tidak diubah"
+            />
+            <small class="text-muted">Untuk user baru default: 123456</small>
+          </div>
+          <div class="mb-3">
+            <label>Status</label>
+            <select id="userStatus" class="form-control">
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Batal
+        </button>
+        <button
+          type="button"
+          id="btnSaveUser"
+          class="btn btn-success"
+          onclick="saveUser()"
+        >
+          Simpan
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let userModal;
+  document.addEventListener("DOMContentLoaded", function () {
+    userModal = new bootstrap.Modal(document.getElementById("formUser"));
+  });
+
+  function formTambahUser() {
+    document.getElementById("userId").value = 0;
+    document.getElementById("userName").value = "";
+    document.getElementById("userEmail").value = "";
+    document.getElementById("userPhone").value = "";
+    document.getElementById("userPass").value = "";
+    document.getElementById("userStatus").value = "active";
+    if (userModal) userModal.show();
+  }
+
+  function editUser(uid) {
+    fetch(`/admin/users/edit/${uid}`)
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.status) {
+          const d = res.data;
+          document.getElementById("userId").value = d.uid;
+          document.getElementById("userName").value = d.name;
+          document.getElementById("userEmail").value = d.email;
+          document.getElementById("userPhone").value = d.phone;
+          document.getElementById("userPass").value = "";
+          document.getElementById("userStatus").value = d.status || "active";
+          if (userModal) userModal.show();
+        } else {
+          alert(res.message);
+        }
+      })
+      .catch((e) => {
+        console.error(e);
+        alert("Error fetching data");
+      });
+  }
+
+  function saveUser() {
+    const btn = document.getElementById("btnSaveUser");
+    btn.disabled = true;
+    btn.innerText = "Menyimpan...";
+
+    const payload = {
+      uid: document.getElementById("userId").value,
+      name: document.getElementById("userName").value,
+      email: document.getElementById("userEmail").value,
+      phone: document.getElementById("userPhone").value,
+      password: document.getElementById("userPass").value,
+      status: document.getElementById("userStatus").value,
+    };
+
+    fetch("/admin/users/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.status) {
+          location.reload();
+        } else {
+          alert("Gagal: " + res.message);
+          btn.disabled = false;
+          btn.innerText = "Simpan";
+        }
+      })
+      .catch((e) => {
+        console.error(e);
+        alert("Server error");
+        btn.disabled = false;
+        btn.innerText = "Simpan";
+      });
+  }
+
+  function hapusUser(uid) {
+    if (!confirm("Hapus user ini? \nPERINGATAN: Data tidak bisa dikembalikan."))
+      return;
+    fetch(`/admin/users/delete/${uid}`, { method: "DELETE" })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.status) location.reload();
+        else alert("Gagal hapus: " + res.message);
+      })
+      .catch((e) => {
+        console.error(e);
+        alert("Error");
+      });
+  }
+</script>

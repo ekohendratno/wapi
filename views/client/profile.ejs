@@ -1,0 +1,170 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="text-success"><i class="fa fa-user me-2"></i>Profile Saya</h4>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="stat-card">
+      <h5 class="mb-4"><i class="fa fa-edit me-2"></i>Edit Profile</h5>
+
+      <form id="profileForm">
+        <div class="mb-3">
+          <label class="form-label">Nama Lengkap</label>
+          <input
+            type="text"
+            class="form-control"
+            id="name"
+            value="<%= user.name %>"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Email Address</label>
+          <input
+            type="email"
+            class="form-control"
+            value="<%= user.email %>"
+            readonly
+            disabled
+          />
+          <small class="text-muted">Email tidak dapat diubah.</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Nomor WhatsApp (Admin)</label>
+          <input
+            type="text"
+            class="form-control"
+            id="phone"
+            value="<%= user.phone %>"
+            placeholder="628xxx"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password Baru</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            placeholder="Kosongkan jika tidak ingin mengubah password"
+          />
+        </div>
+
+        <hr />
+
+        <div class="mb-3">
+          <label class="form-label">API Key</label>
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              value="<%= user.api_key %>"
+              readonly
+              id="apiKeyField"
+            />
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              onclick="copyApiKey()"
+            >
+              <i class="fa fa-copy"></i> Copy
+            </button>
+          </div>
+          <small class="text-muted"
+            >Gunakan API Key ini untuk integrasi dengan aplikasi pihak
+            ketiga.</small
+          >
+        </div>
+
+        <button type="submit" class="btn btn-success mt-3" id="btnSave">
+          <i class="fa fa-save me-2"></i>Simpan Perubahan
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="stat-card">
+      <h5 class="mb-3"><i class="fa fa-info-circle me-2"></i>Informasi Akun</h5>
+      <ul class="list-group list-group-flush">
+        <li
+          class="list-group-item d-flex justify-content-between align-items-center"
+        >
+          Status Akun <% if(user.status === 'active') { %>
+          <span class="badge bg-success">Active</span>
+          <% } else { %>
+          <span class="badge bg-danger"><%= user.status %></span>
+          <% } %>
+        </li>
+        <li
+          class="list-group-item d-flex justify-content-between align-items-center"
+        >
+          Tanggal Bergabung
+          <span
+            ><%= new Date(user.created_at).toLocaleDateString('id-ID') %></span
+          >
+        </li>
+        <li
+          class="list-group-item d-flex justify-content-between align-items-center"
+        >
+          Terakhir Login
+          <span
+            ><%= user.last_active ? new
+            Date(user.last_active).toLocaleString('id-ID') : '-' %></span
+          >
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  function copyApiKey() {
+    const copyText = document.getElementById("apiKeyField");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value);
+    showToast("API Key berhasil disalin!", "success");
+  }
+
+  document
+    .getElementById("profileForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      const btn = document.getElementById("btnSave");
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i>Menyimpan...';
+
+      const payload = {
+        name: document.getElementById("name").value,
+        phone: document.getElementById("phone").value,
+        password: document.getElementById("password").value,
+      };
+
+      fetch("/client/profile/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.status) {
+            showToast("Profile berhasil diperbarui!", "success");
+            setTimeout(() => location.reload(), 1500);
+          } else {
+            showToast(res.message || "Gagal memperbarui profile", "danger");
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          showToast("Terjadi kesalahan server", "danger");
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        });
+    });
+</script>

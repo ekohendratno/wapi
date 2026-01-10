@@ -268,6 +268,12 @@
             </a>
           </li>
           <li>
+            <a href="/client/profile">
+              <i class="fa fa-user"></i>
+              <span class="menu-text">Profile Saya</span>
+            </a>
+          </li>
+          <li>
             <a href="javascript:void(0)" onclick="aksiLogout()">
               <i class="fa fa-power-off"></i>
               <span class="menu-text">Log Out</span>
@@ -307,10 +313,10 @@
         }
       });
 
-    //   showToast("Pesan berhasil dikirim!", "success"); // hijau
-    //   showToast("Gagal menghapus data!", "danger"); // merah
-    //   showToast("Sedang memproses...", "warning"); // kuning
-    //   showToast("Info tambahan untuk kamu", "info"); // biru
+      //   showToast("Pesan berhasil dikirim!", "success"); // hijau
+      //   showToast("Gagal menghapus data!", "danger"); // merah
+      //   showToast("Sedang memproses...", "warning"); // kuning
+      //   showToast("Info tambahan untuk kamu", "info"); // biru
       function showToast(message, type = "info") {
         const toastId = "toast-" + Date.now();
         const toastHtml = `

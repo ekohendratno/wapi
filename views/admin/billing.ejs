@@ -28,7 +28,7 @@
   </div>
 </div>
 <div class="row">
-  <div class="col-md-8">
+  <div class="col-md-12">
     <div class="stat-card">
       <h5 class="mb-4"><i class="fa fa-history me-2"></i>Riwayat Transaksi</h5>
       <!-- Tabs -->
@@ -67,49 +67,16 @@
             <th>Deskripsi</th>
             <th>Jumlah</th>
             <th>Status</th>
-            <th>Aksi</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
     </div>
   </div>
-  <div class="col-md-4">
-    <div class="stat-card">
-      <h5 class="mb-4"><i class="fa fa-credit-card me-2"></i>Top-Up Saldo</h5>
-      <form id="topUpForm">
-        <div class="mb-3">
-          <label>Jumlah Top-Up</label>
-          <input
-            type="number"
-            id="amount"
-            class="form-control"
-            value="25000"
-            min="25000"
-            placeholder="Masukkan jumlah top-up"
-            required
-          />
-        </div>
-        <div class="mb-3">
-          <label>Metode Pembayaran</label>
-          <select id="paymentMethod" class="form-control" required>
-            <option value="VC">Virtual Account</option>
-            <option value="EW">E-Wallet</option>
-            <option value="BT">Bank Transfer</option>
-          </select>
-        </div>
-        <button id="topUpButton" class="btn btn-success w-100" type="submit">
-          Lanjutkan Top-Up
-        </button>
-      </form>
-    </div>
-  </div>
 </div>
 
 <script>
   $(document).ready(function () {
-    let topUpInProgress = false;
-
     function loadBillingData(status = "all") {
       $.ajax({
         url: "/admin/billing/data",
@@ -117,7 +84,8 @@
         data: { status },
         success: function (response) {
           if (!response.success) return alert("Gagal memuat transaksi");
-          const { transactions, balance, totalUsed, totalPending } = response.data;
+          const { transactions, balance, totalUsed, totalPending } =
+            response.data;
 
           // Update saldo dan pemakaian
           $(".stat-card:eq(0) h2").text(`Rp ${balance.toLocaleString()}`);
@@ -136,14 +104,12 @@
 
           $.each(transactions, function (_, tx) {
             const badge = getStatusBadge(tx.status);
-            const action = getActionButtons(tx);
             tbody.append(`
               <tr>
                 <td>${tx.formattedDate}</td>
                 <td>${tx.description}</td>
                 <td>${tx.amountFormatted}</td>
                 <td>${badge}</td>
-                <td>${action}</td>
               </tr>`);
           });
         },
@@ -165,110 +131,6 @@
         map[status] || "bg-secondary"
       }">${status}</span>`;
     }
-
-    function getActionButtons(tx) {
-      const now = Date.now();
-      const createdAt = new Date(tx.created_at).getTime();
-      const withinLimit = now - createdAt < 24 * 60 * 60 * 1000;
-
-      if (tx.status === "pending" && tx.reference && withinLimit) {
-        return `<button class="btn btn-warning btn-sm pay-btn" data-id="${tx.merchantOrderId}">Bayar</button>`;
-      }else{
-        return `<button class="btn btn-secondary btn-sm" disabled>Terbayar</button>`;
-      }
-    }
-
-    function handleDuitkuCheckout(reference, $btn) {
-      if (typeof checkout === "undefined")
-        return alert("Checkout tidak ditemukan");
-
-      checkout.process(reference, {
-        defaultLanguage: "id",
-        successEvent: () => {
-          alert("Pembayaran berhasil!");
-          loadBillingData("all");
-        },
-        pendingEvent: () => {
-          alert("Pembayaran sedang diproses.");
-          loadBillingData("all");
-        },
-        errorEvent: () => {
-          alert("Pembayaran gagal.");
-          if ($btn) $btn.prop("disabled", false).html("Bayar");
-        },
-        closeEvent: () => {
-          alert("Anda menutup popup pembayaran.");
-          if ($btn) $btn.prop("disabled", false).html("Bayar");
-        },
-      });
-    }
-
-    $("#topUpForm").on("submit", function (e) {
-      e.preventDefault();
-      if (topUpInProgress) return;
-
-      const amount = parseInt($("#amount").val());
-      const paymentMethod = $("#paymentMethod").val();
-      const $btn = $("#topUpButton");
-
-      if (!amount || amount < 25000) return alert("Minimal Rp 25.000");
-
-      topUpInProgress = true;
-      $btn
-        .prop("disabled", true)
-        .html('<i class="fa fa-spinner fa-spin"></i> Memproses...');
-
-      $.ajax({
-        url: "/create-invoice",
-        method: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({
-          paymentAmount: amount,
-          paymentMethod: paymentMethod,
-          productDetail: "Top-Up Saldo",
-        }),
-        success: function (result) {
-          if (!result.success || !result.reference) {
-            alert(result.message || "Gagal membuat invoice.");
-            return;
-          }
-          handleDuitkuCheckout(result.reference);
-        },
-        error: function () {
-          alert("Gagal menghubungi server.");
-        },
-        complete: function () {
-          topUpInProgress = false;
-          $btn.prop("disabled", false).html("Lanjutkan Top-Up");
-        },
-      });
-    });
-
-    $(document).on("click", ".pay-btn", function (e) {
-      e.preventDefault();
-      const merchantOrderId = $(this).data("id");
-      const $btn = $(this)
-        .html('<i class="fa fa-spinner fa-spin"></i> Memeriksa...')
-        .prop("disabled", true);
-
-      $.ajax({
-        url: `/check-pending-transaction?merchantOrderId=${merchantOrderId}`,
-        method: "GET",
-        success: function (result) {
-          if (!result.success || !result.hasPending) {
-            alert("Transaksi tidak ditemukan.");
-            $btn.html("Bayar").prop("disabled", false);
-            return;
-          }
-
-          handleDuitkuCheckout(result.reference, $btn);
-        },
-        error: function () {
-          alert("Gagal memeriksa transaksi.");
-          $btn.html("Bayar").prop("disabled", false);
-        },
-      });
-    });
 
     // Tombol filter tab
     $(".filter-btn").on("click", function () {

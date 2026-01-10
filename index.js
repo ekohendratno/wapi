@@ -31,7 +31,7 @@ const dbConfig = require("./config");
 const pool = mysql.createPool(dbConfig);
 
 const InitData = require("./lib/InitData.js");
-const SessionManager = require("./lib/SessionsManager_v2.js");
+const SessionManager = require("./lib/SessionsManager.js");
 const BillingManager = require("./lib/BillingManager");
 const CronManager = require("./lib/CronManager.js");
 const CronGroupManager = require("./lib/CronGroupManager.js");
@@ -157,9 +157,11 @@ const packageAdminRoutes = require("./routes/admin/packageRoutes.js")(
 const billingAdminRoutes = require("./routes/admin/billingRoutes.js")(
   billingManager
 );
+const userAdminRoutes = require("./routes/admin/userRoutes.js")({ pool });
 app.use("/admin", requireRole("admin"), indexAdminRoutes);
 app.use("/admin/package", requireRole("admin"), packageAdminRoutes);
 app.use("/admin/billing", requireRole("admin"), billingAdminRoutes);
+app.use("/admin/users", requireRole("admin"), userAdminRoutes);
 
 // Routes Client
 const indexClientRoutes = require("./routes/client/indexRoutes")({
@@ -200,6 +202,7 @@ const bantuinClientRoutes = require("./routes/client/bantuinRoutes")(
 const dokumentasiClientRoutes = require("./routes/client/dokumentasiRoutes")(
   sessionManager
 );
+const profileClientRoutes = require("./routes/client/profileRoutes")({ pool });
 
 app.use("/client", requireRole("client"), indexClientRoutes);
 app.use("/client/package", requireRole("client"), packageClientRoutes);
@@ -210,6 +213,7 @@ app.use("/client/message", requireRole("client"), messageClientRoutes);
 app.use("/client/autoreply", requireRole("client"), autoreplyClientRoutes);
 app.use("/client/bantuin", requireRole("client"), bantuinClientRoutes);
 app.use("/client/dokumentasi", requireRole("client"), dokumentasiClientRoutes);
+app.use("/client/profile", requireRole("client"), profileClientRoutes);
 
 // Routes Main
 const indexRoutes = require("./routes/indexRoutes")({

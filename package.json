@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@hapi/boom": "^10.0.1",
-    "@whiskeysockets/baileys": "^6.7.20",
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "axios": "^1.13.2",
     "body-parser": "^1.20.3",
     "chokidar": "^3.6.0",
