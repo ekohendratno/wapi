@@ -1,157 +1,268 @@
 <style>
-    .auth-section {
-        background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
+  :root {
+    --wa-brand: #25d366;
+    --wa-dark: #075e54;
+    --bg-right: #003126; /* Deep green */
+  }
+  .min-vh-100 {
+    min-height: 100vh;
+  }
+  .form-control-pill {
+    border-radius: 8px;
+    padding: 12px 15px;
+    border: 1px solid #dfe1e5;
+    background-color: #f8f9fa;
+  }
+  .form-control-pill:focus {
+    border-color: var(--wa-brand);
+    box-shadow: 0 0 0 0.2rem rgba(37, 211, 102, 0.25);
+    background-color: #fff;
+  }
+  .btn-brand {
+    background-color: var(--wa-brand);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .btn-brand:hover {
+    background-color: #1ebc57;
+    color: white;
+  }
+  .right-side-bg {
+    background: radial-gradient(circle at 50% 50%, #0d5546 0%, #00251a 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .right-side-bg::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("https://user-images.githubusercontent.com/1500684/235473775-5980757a-c756-42ee-9783-c90a1961524e.svg")
+      no-repeat center center;
+    opacity: 0.1;
+    background-size: cover;
+  }
+  .feature-list i {
+    color: var(--wa-brand);
+    margin-right: 10px;
+  }
+  .brand-logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--wa-dark);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  @media (max-width: 576px) {
+    .brand-logo {
+      font-size: 1.2rem;
     }
-    .login-card {
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        width: 100%;
-        max-width: 400px;
+    .brand-logo i {
+      font-size: 1.5rem !important;
     }
-    .brand-title {
-        color: #128C7E;
-        font-weight: 700;
-        font-size: 1.8rem;
+    h2 {
+      font-size: 1.5rem;
     }
-    .form-control-custom {
-        border: 1px solid #ced4da;
-        border-radius: 5px;
-        padding: 12px 15px 12px 40px;
-        transition: all 0.3s;
-    }
-    .form-control-custom:focus {
-        border-color: #128C7E;
-        box-shadow: none;
-    }
-    .input-icon {
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6c757d;
-        z-index: 2;
-    }
-    .form-label {
-        font-weight: 500;
-        margin-bottom: 8px;
-        display: block;
-        color: #495057;
-    }
-    .section-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        color: #128C7E;
-        text-align: center;
-    }
+  }
 </style>
 
-<section class="auth-section">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6 pt-4 pb-4">
-                <div class="login-card mx-auto p-4">
-                    <!-- Brand Title -->
-                    <div class="text-center mb-4">
-                        <h1 class="brand-title mb-3">w@pi</h1>
-                        <h2 class="section-title">Formulir Pendaftaran</h2>
-                    </div>
-
-                    <!-- Tampilkan error jika ada -->
-                    <% if (error) { %>
-                        <div class="alert alert-danger text-center">
-                            <%= error %>
-                        </div>
-                    <% } %>
-
-                    <!-- Registration Form -->
-                    <form action="/auth/register" method="POST">
-                        <!-- Nama Lengkap -->
-                        <div class="mb-4">
-                            <label class="form-label">Nama Lengkap</label>
-                            <div class="position-relative">
-                                <i class="fas fa-user input-icon"></i>
-                                <input name="name" type="text" class="form-control form-control-custom" 
-                                       placeholder="Tuliskan nama lengkap anda" 
-                                       value="<%= typeof name !== 'undefined' ? name : '' %>" required>
-                            </div>
-                        </div>
-
-                        <!-- Email -->
-                        <div class="mb-4">
-                            <label class="form-label">Alamat Email</label>
-                            <div class="position-relative">
-                                <i class="fas fa-envelope input-icon"></i>
-                                <input name="email" type="email" class="form-control form-control-custom" 
-                                       placeholder="Tuliskan email pribadi anda" 
-                                       value="<%= typeof email !== 'undefined' ? email : '' %>" required>
-                            </div>
-                        </div>
-
-                        <!-- Nomor WhatsApp -->
-                        <div class="mb-4">
-                            <label class="form-label">Nomor WhatsApp</label>
-                            <div class="position-relative">
-                                <i class="fas fa-phone input-icon"></i>
-                                <input name="phone" type="tel" class="form-control form-control-custom" 
-                                       placeholder="Tuliskan nomor whatsapp pribadi anda" 
-                                       value="<%= typeof phone !== 'undefined' ? phone : '' %>" required>
-                            </div>
-                            <small class="text-muted mt-2 d-block">
-                                Nomor ini hanya untuk tujuan pribadi dan tidak terkait dengan bot atau notif OTP pada aplikasi anda.
-                            </small>
-                        </div>
-
-                        <!-- Password -->
-                        <div class="mb-4">
-                            <label class="form-label">Password</label>
-                            <div class="position-relative">
-                                <i class="fas fa-lock input-icon"></i>
-                                <input name="password" type="password" class="form-control form-control-custom" 
-                                       placeholder="Buat password anda" minlength="6" required>
-                            </div>
-                        </div>
-
-                        <!-- Ulangi Password -->
-                        <div class="mb-4">
-                            <label class="form-label">Ulangi Password</label>
-                            <div class="position-relative">
-                                <i class="fas fa-lock input-icon"></i>
-                                <input name="repassword" type="password" class="form-control form-control-custom" 
-                                       placeholder="Ketik ulang password di atas" minlength="6" required>
-                            </div>
-                        </div>
-
-                        <!-- Kode Referral -->
-                        <div class="mb-4">
-                            <label class="form-label">Kode Referral <span class="text-muted">(opsional)</span></label>
-                            <div class="position-relative">
-                                <i class="fas fa-ticket-alt input-icon"></i>
-                                <input name="ref" type="text" class="form-control form-control-custom" 
-                                       placeholder="Masukkan kode referral" 
-                                       value="<%= typeof ref !== 'undefined' ? ref : '' %>">
-                            </div>
-                        </div>
-
-                        <!-- Register Button -->
-                        <button type="submit" class="btn btn-success w-100 mb-3 py-2 fw-bold">Daftar Sekarang →</button>
-
-                        <!-- Login Link -->
-                        <div class="text-center small">
-                            <p class="mb-0">
-                                <span class="text-muted">Sudah punya akun?</span>
-                                <a href="/auth/login" class="text-success text-decoration-none fw-bold">
-                                    Login di sini
-                                </a>
-                            </p>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<div class="container-fluid p-0">
+  <div class="row g-0 min-vh-100">
+    <!-- LEFT SIDE: FORM -->
+    <div class="col-lg-6 d-flex flex-column bg-white position-relative">
+      <!-- Header: Logo & Login -->
+      <div class="d-flex justify-content-between align-items-center p-3 p-md-4">
+        <a href="/" class="brand-logo">
+          <i class="fab fa-whatsapp text-success" style="font-size: 2rem"></i>
+          <span>w@pi</span>
+        </a>
+        <div class="d-flex gap-2">
+          <a
+            href="/auth/login"
+            class="btn btn-outline-secondary px-3 d-flex align-items-center"
+            style="border-radius: 8px"
+          >
+            <i class="fas fa-sign-in-alt d-md-none"></i>
+            <span class="d-none d-md-inline">Login</span>
+            <span class="d-md-none ms-2">Login</span>
+          </a>
         </div>
+      </div>
+
+      <div class="row justify-content-center my-auto w-100 mx-0 px-4 px-md-5">
+        <div class="col-md-8 col-lg-8">
+          <div class="text-center mb-4">
+            <h2 class="fw-bold text-dark">Buat akun w@pi Anda</h2>
+            <p class="text-muted">
+              Mulai sekarang - Gratis selamanya. Tanpa kartu kredit.
+            </p>
+          </div>
+
+          <% if (error) { %>
+          <div class="alert alert-danger"><%= error %></div>
+          <% } %>
+
+          <form action="/auth/register" method="POST">
+            <div class="mb-3">
+              <label class="form-label fw-bold small text-secondary"
+                >Nama Lengkap <span class="text-danger">*</span></label
+              >
+              <input
+                name="name"
+                type="text"
+                class="form-control form-control-pill"
+                placeholder="Contoh: Eko Hendratno"
+                value="<%= typeof name !== 'undefined' ? name : '' %>"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold small text-secondary"
+                >Email <span class="text-danger">*</span></label
+              >
+              <input
+                name="email"
+                type="email"
+                class="form-control form-control-pill"
+                placeholder="nama@email.com"
+                value="<%= typeof email !== 'undefined' ? email : '' %>"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold small text-secondary"
+                >Phone (WhatsApp) <span class="text-danger">*</span></label
+              >
+              <div class="input-group">
+                <span
+                  class="input-group-text bg-light border-end-0"
+                  style="border-radius: 8px 0 0 8px; border-color: #dfe1e5"
+                >
+                  🇮🇩
+                </span>
+                <input
+                  name="phone"
+                  type="tel"
+                  class="form-control form-control-pill border-start-0"
+                  style="border-radius: 0 8px 8px 0"
+                  placeholder="8123xxxxxxx"
+                  value="<%= typeof phone !== 'undefined' ? phone : '' %>"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small text-secondary"
+                  >Password</label
+                >
+                <input
+                  name="password"
+                  type="password"
+                  class="form-control form-control-pill"
+                  placeholder="••••••"
+                  minlength="6"
+                  required
+                />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small text-secondary"
+                  >Konfirmasi</label
+                >
+                <input
+                  name="repassword"
+                  type="password"
+                  class="form-control form-control-pill"
+                  placeholder="••••••"
+                  minlength="6"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold small text-secondary"
+                >Kode Referral (Opsional)</label
+              >
+              <input
+                name="ref"
+                type="text"
+                class="form-control form-control-pill"
+                value="<%= typeof ref !== 'undefined' ? ref : '' %>"
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-brand w-100 mb-4 py-3 d-flex align-items-center justify-content-center"
+            >
+              <i class="fas fa-user-plus me-2"></i> Buat Akun Baru
+            </button>
+
+            <div class="text-center text-muted small">
+              Dengan mendaftar, Anda menyetujui
+              <a href="#" class="text-decoration-none">Ketentuan Layanan</a> dan
+              <a href="#" class="text-decoration-none">Kebijakan Privasi</a>
+              kami.
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-</section>
+
+    <!-- RIGHT SIDE: HERO -->
+    <div
+      class="col-lg-6 d-none d-lg-flex flex-column justify-content-center align-items-center text-white right-side-bg p-5"
+    >
+      <div class="mw-100" style="max-width: 500px">
+        <h1 class="display-4 fw-bold mb-4">
+          WhatsApp Anda—<br />dengan Kekuatan Super
+        </h1>
+        <p class="lead mb-4 text-white-50">
+          Otomatisasi WhatsApp, tingkatkan pendapatan. Dipercaya oleh 4.600+
+          pelanggan.
+        </p>
+
+        <div
+          class="d-inline-flex align-items-center bg-success bg-opacity-25 border border-success border-opacity-50 rounded-pill px-3 py-2 mb-5"
+        >
+          <i class="fas fa-gift me-2 text-warning"></i>
+          <span class="fw-bold">250 Pesan GRATIS setiap bulan.</span>
+        </div>
+
+        <h6 class="text-uppercase text-white-50 fw-bold mb-4 small ls-1">
+          Paket Gratis Selamanya Termasuk:
+        </h6>
+
+        <ul class="list-unstyled feature-list mb-0">
+          <li class="mb-3 d-flex align-items-center">
+            <i class="fas fa-check-circle"></i> <span>Akses API WhatsApp</span>
+          </li>
+          <li class="mb-3 d-flex align-items-center">
+            <i class="fas fa-check-circle"></i>
+            <span>Akses Webhook WhatsApp</span>
+          </li>
+          <li class="mb-3 d-flex align-items-center">
+            <i class="fas fa-check-circle"></i>
+            <span>Akses Semua Fitur Utama</span>
+          </li>
+          <li class="d-flex align-items-center">
+            <i class="fas fa-check-circle"></i>
+            <span>Integrasi WordPress, WooCommerce, Google Sheets</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
