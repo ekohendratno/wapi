@@ -25,10 +25,10 @@
   "license": "SEE LICENSE IN LICENSE.md",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/wapi-gateway.git"
+    "url": "https://github.com/ekohendratno/wapi.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/wapi-gateway/issues"
+    "url": "https://github.com/ekohendratno/wapi/issues"
   },
   "homepage": "https://wapi.jasaedukasi.com",
   "engines": {

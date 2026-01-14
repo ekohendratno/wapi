@@ -143,7 +143,7 @@ module.exports = (sessionManager) => {
       });
 
       // Wait for QR or connection
-      const timeoutMs = 15000;
+      const timeoutMs = 45000;
       const checkIntervalMs = 1000;
       let elapsed = 0;
       let hasAutoReset = false;
