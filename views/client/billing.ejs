@@ -1,0 +1,674 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="text-success">
+    <i class="fa fa-dollar-sign me-2"></i>Manajemen Billing
+  </h4>
+</div>
+<!-- Statistik Saldo -->
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <h5>Saldo Tersedia</h5>
+      <h2>Rp <%= balance.toLocaleString() %></h2>
+      <small>Update terakhir: <%= balanceLastUpdate.toLocaleString() %></small>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <h5>Pemakaian</h5>
+      <h2>Rp <%= totalUsed.toLocaleString() %></h2>
+      <small>Bulan Ini</small>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <h5>Belum Terbayar</h5>
+      <h2>0 Pending</h2>
+      <small>Jatuh tempo 1x24 jam</small>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <div class="stat-card">
+      <h5 class="mb-4"><i class="fa fa-history me-2"></i>Riwayat Transaksi</h5>
+      <!-- Tabs -->
+
+      <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+          <a class="nav-link active filter-btn" data-status="all" href="#"
+            >Semua</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link filter-btn" data-status="pending" href="#"
+            >Pending</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link filter-btn" data-status="success" href="#"
+            >Success</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link filter-btn" data-status="paid" href="#">Paid</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link filter-btn" data-status="failed" href="#"
+            >Failed</a
+          >
+        </li>
+      </ul>
+
+      <!-- Tabel Transaksi -->
+      <table class="table table-striped table-hover" id="transaksiTable">
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Deskripsi</th>
+            <th>Jumlah</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <h5 class="mb-4"><i class="fa fa-credit-card me-2"></i>Top-Up Saldo</h5>
+      <form id="topUpForm">
+        <div class="mb-3">
+          <label>Jumlah Top-Up</label>
+          <input
+            type="number"
+            id="amount"
+            class="form-control"
+            value="25000"
+            min="25000"
+            placeholder="Masukkan jumlah top-up"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label>Metode Pembayaran</label>
+          <select id="paymentMethod" class="form-control" required>
+            <!-- Full list of Duitku payment methods (codes + friendly labels) per https://docs.duitku.com/api/id/#metode-pembayaran -->
+            <optgroup label="Credit Card">
+              <option value="VC">Credit Card (Visa / Master / JCB)</option>
+            </optgroup>
+
+            <optgroup label="Virtual Account (Bank)">
+              <option value="BC">BCA Virtual Account</option>
+              <option value="M2">Mandiri Virtual Account</option>
+              <option value="I1">BNI Virtual Account</option>
+              <option value="B1">CIMB Niaga Virtual Account</option>
+              <option value="BT">Permata Virtual Account</option>
+              <option value="VA">Maybank / Generic VA</option>
+              <option value="A1">ATM Bersama</option>
+              <option value="AG">Bank Artha Graha</option>
+              <option value="NC">Bank Neo Commerce (Nobu)</option>
+              <option value="BR">BRIVA</option>
+              <option value="S1">Bank Sahabat Sampoerna</option>
+              <option value="DM">Danamon Virtual Account</option>
+              <option value="BV">BSI Virtual Account</option>
+            </optgroup>
+
+            <optgroup label="E-Wallet / Account Link / QRIS">
+              <option value="OV">OVO (E-Wallet)</option>
+              <option value="SA">ShopeePay (E-Wallet / Apps)</option>
+              <option value="DA">DANA (E-Wallet)</option>
+              <option value="SL">ShopeePay Account Link</option>
+              <option value="OL">OVO Account Link</option>
+              <option value="LF">LinkAja Apps (Fixed Fee)</option>
+              <option value="LA">LinkAja Apps (Percentage Fee)</option>
+              <option value="SP">ShopeePay (QRIS)</option>
+              <option value="NQ">Nobu (QRIS)</option>
+              <option value="GQ">Gudang Voucher (QRIS / voucher)</option>
+              <option value="SQ">Nusapay (QRIS)</option>
+            </optgroup>
+
+            <optgroup label="Retail / Convenience / Voucher">
+              <option value="FT">
+                Retail (Pegadaian / Alfamart / POS)
+              </option>
+              <option value="IR">Indomaret</option>
+              <option value="GQ">Gudang Voucher</option>
+            </optgroup>
+
+            <optgroup label="Paylater / Installment / E-Banking">
+              <option value="DN">Indodana (Paylater)</option>
+              <option value="AT">ATOME (Paylater)</option>
+              <option value="JP">Jenius Pay (E-Banking)</option>
+            </optgroup>
+
+            <optgroup label="Other / Legacy">
+              <option value="NC">Bank Neo Commerce</option>
+              <option value="BR">BRIVA</option>
+              <option value="A1">ATM Bersama</option>
+            </optgroup>
+          </select>
+          <small class="form-text text-muted"
+            >Pilih metode pembayaran. Server akan meneruskan kode metode ke
+            Duitku untuk membuka halaman pembayaran khusus metode
+            tersebut.</small
+          >
+        </div>
+        <button id="topUpButton" class="btn btn-success w-100" type="submit">
+          Lanjutkan Top-Up
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://app-sandbox.duitku.com/lib/js/duitku.js"></script>
+<input type="hidden" id="apiKey" value="<%= apiKey %>" />
+
+<script>
+  $(document).ready(function () {
+    let topUpInProgress = false;
+
+    function loadBillingData(status = "all") {
+      $.ajax({
+        url: "/client/billing/data",
+        method: "GET",
+        data: { status },
+        success: function (response) {
+          if (!response.success) return alert("Gagal memuat transaksi");
+          const { transactions, balance, totalUsed, totalPending } =
+            response.data;
+
+          // Update saldo dan pemakaian
+          $(".stat-card:eq(0) h2").text(`Rp ${balance.toLocaleString()}`);
+          $(".stat-card:eq(1) h2").text(`Rp ${totalUsed.toLocaleString()}`);
+          $(".stat-card:eq(2) h2").text(`${totalPending} Pending`);
+
+          const tbody = $("#transaksiTable tbody");
+          tbody.empty();
+
+          if (transactions.length === 0) {
+            tbody.append(
+              `<tr><td colspan="5" class="text-center">Tidak ada transaksi</td></tr>`
+            );
+            return;
+          }
+
+          $.each(transactions, function (_, tx) {
+            const badge = getStatusBadge(tx.status);
+            const action = getActionButtons(tx);
+            tbody.append(`
+              <tr>
+                <td>${tx.formattedDate}</td>
+                <td>${tx.description}</td>
+                <td>${tx.amountFormatted}</td>
+                <td>${badge}</td>
+                <td>${action}</td>
+              </tr>`);
+          });
+        },
+        error: function (err) {
+          console.error(err);
+          alert("Gagal mengambil data billing.");
+        },
+      });
+    }
+
+    function getStatusBadge(status) {
+      const map = {
+        success: "bg-success",
+        paid: "bg-primary",
+        failed: "bg-danger",
+        pending: "bg-warning text-dark",
+      };
+      return `<span class="badge ${
+        map[status] || "bg-secondary"
+      }">${status}</span>`;
+    }
+
+    function getActionButtons(tx) {
+      const now = Date.now();
+      const createdAt = new Date(tx.created_at).getTime();
+      const withinLimit = now - createdAt < 24 * 60 * 60 * 1000; // 24 hours
+
+      // Build a set of small action buttons for professional UX
+      const openBtn = tx.paymentUrl
+        ? `<button class="btn btn-sm btn-primary open-payment" data-url="${tx.paymentUrl}" title="Buka Halaman Pembayaran"><i class="fa fa-external-link-alt"></i></button>`
+        : "";
+
+      const copyBtn = tx.paymentUrl
+        ? `<button class="btn btn-sm btn-outline-secondary copy-link" data-url="${tx.paymentUrl}" title="Salin Link Pembayaran"><i class="fa fa-copy"></i></button>`
+        : "";
+
+      const checkBtn = `<button class="btn btn-sm btn-info check-status" data-id="${tx.merchantOrderId}" title="Periksa Status"><i class="fa fa-search"></i></button>`;
+
+      const detailBtn = `<button class="btn btn-sm btn-light view-detail" data-id="${tx.merchantOrderId}" title="Lihat Detail">Detail</button>`;
+
+      if (tx.status === "pending" && tx.reference && withinLimit) {
+        // Show open/copy/check buttons for pending transactions
+        return `<div class="btn-group" role="group">${openBtn}${copyBtn}${checkBtn}</div>`;
+      }
+
+      // For completed/other statuses show a subtle 'Detail' button and status badge
+      return `<div class="btn-group" role="group">${detailBtn}</div>`;
+    }
+
+    // Open paymentUrl in a new tab
+    $(document).on("click", ".open-payment", function (e) {
+      e.preventDefault();
+      const url = $(this).data("url");
+      if (!url) return alert("Link pembayaran tidak tersedia.");
+      window.open(url, "_blank");
+    });
+
+    // Copy payment link to clipboard
+    $(document).on("click", ".copy-link", function (e) {
+      e.preventDefault();
+      const url = $(this).data("url");
+      if (!url) return alert("Link pembayaran tidak tersedia.");
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(
+          function () {
+            alert("Link pembayaran tersalin ke clipboard.");
+          },
+          function () {
+            alert("Gagal menyalin link.");
+          }
+        );
+      } else {
+        // fallback
+        const $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val(url).select();
+        document.execCommand("copy");
+        $temp.remove();
+        alert("Link pembayaran tersalin (fallback).");
+      }
+    });
+
+    // Check pending transaction and open payment if available
+    $(document).on("click", ".check-status", function (e) {
+      e.preventDefault();
+      const merchantOrderId = $(this).data("id");
+      const $btn = $(this)
+        .prop("disabled", true)
+        .html('<i class="fa fa-spinner fa-spin"></i>');
+
+      $.ajax({
+        url: `/check-pending-transaction?merchantOrderId=${merchantOrderId}`,
+        method: "GET",
+        success: function (result) {
+          if (!result.success || !result.hasPending) {
+            alert("Transaksi tidak ditemukan.");
+            $btn.html('<i class="fa fa-search"></i>').prop("disabled", false);
+            return;
+          }
+          if (result.paymentUrl) {
+            window.open(result.paymentUrl, "_blank");
+          } else if (result.reference) {
+            // fallback to popup
+            if (typeof checkout !== "undefined")
+              checkout.process(result.reference, {});
+          }
+          $btn.html('<i class="fa fa-search"></i>').prop("disabled", false);
+        },
+        error: function () {
+          alert("Gagal memeriksa transaksi.");
+          $btn.html('<i class="fa fa-search"></i>').prop("disabled", false);
+        },
+      });
+    });
+
+    // Change payment method modal handling
+    const $changeModal = $(
+      `
+      <div class="modal" id="changeMethodModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Ganti Metode Pembayaran</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="changeMerchantOrderId" />
+              <div class="mb-3">
+                <label>Pilih Metode Pembayaran</label>
+                <select id="changePaymentMethod" class="form-control">
+                  <optgroup label="Credit Card">
+              <option value="VC">VC — Credit Card (Visa / Master / JCB)</option>
+            </optgroup>
+
+            <optgroup label="Virtual Account (Bank)">
+              <option value="BC">BC — BCA Virtual Account</option>
+              <option value="M2">M2 — Mandiri Virtual Account</option>
+              <option value="I1">I1 — BNI Virtual Account</option>
+              <option value="B1">B1 — CIMB Niaga Virtual Account</option>
+              <option value="BT">BT — Permata Virtual Account</option>
+              <option value="VA">VA — Maybank / Generic VA</option>
+              <option value="A1">A1 — ATM Bersama</option>
+              <option value="AG">AG — Bank Artha Graha</option>
+              <option value="NC">NC — Bank Neo Commerce (Nobu)</option>
+              <option value="BR">BR — BRIVA</option>
+              <option value="S1">S1 — Bank Sahabat Sampoerna</option>
+              <option value="DM">DM — Danamon Virtual Account</option>
+              <option value="BV">BV — BSI Virtual Account</option>
+            </optgroup>
+
+            <optgroup label="E-Wallet / Account Link / QRIS">
+              <option value="OV">OV — OVO (E-Wallet)</option>
+              <option value="SA">SA — ShopeePay (E-Wallet / Apps)</option>
+              <option value="DA">DA — DANA (E-Wallet)</option>
+              <option value="SL">SL — ShopeePay Account Link</option>
+              <option value="OL">OL — OVO Account Link</option>
+              <option value="LF">LF — LinkAja Apps (Fixed Fee)</option>
+              <option value="LA">LA — LinkAja Apps (Percentage Fee)</option>
+              <option value="SP">SP — ShopeePay (QRIS)</option>
+              <option value="NQ">NQ — Nobu (QRIS)</option>
+              <option value="GQ">GQ — Gudang Voucher (QRIS / voucher)</option>
+              <option value="SQ">SQ — Nusapay (QRIS)</option>
+            </optgroup>
+
+            <optgroup label="Retail / Convenience / Voucher">
+              <option value="FT">FT — Retail (Pegadaian / Alfamart / POS)</option>
+              <option value="IR">IR — Indomaret</option>
+              <option value="GQ">GQ — Gudang Voucher</option>
+            </optgroup>
+
+            <optgroup label="Paylater / Installment / E-Banking">
+              <option value="DN">DN — Indodana (Paylater)</option>
+              <option value="AT">AT — ATOME (Paylater)</option>
+              <option value="JP">JP — Jenius Pay (E-Banking)</option>
+            </optgroup>
+
+            <optgroup label="Other / Legacy">
+              <option value="NC">NC — Bank Neo Commerce</option>
+              <option value="BR">BR — BRIVA</option>
+              <option value="A1">A1 — ATM Bersama</option>
+            </optgroup>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+              <button type="button" class="btn btn-primary" id="confirmChangeMethod">Ganti Metode</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      `
+    );
+    $("body").append($changeModal);
+
+    $(document).on("click", ".change-method", function (e) {
+      e.preventDefault();
+      const merchantOrderId = $(this).data("id");
+      $("#changeMerchantOrderId").val(merchantOrderId);
+      const modal = new bootstrap.Modal(
+        document.getElementById("changeMethodModal")
+      );
+      modal.show();
+    });
+
+    $(document).on("click", "#confirmChangeMethod", function (e) {
+      const merchantOrderId = $("#changeMerchantOrderId").val();
+      const newMethod = $("#changePaymentMethod").val();
+      if (!merchantOrderId || !newMethod) return alert("Data tidak lengkap");
+      const $btn = $(this).prop("disabled", true).text("Memproses...");
+
+      $.ajax({
+        url: "/change-payment-method",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ merchantOrderId, paymentMethod: newMethod }),
+        success: function (res) {
+          if (!res.success)
+            return alert(res.message || "Gagal mengganti metode");
+          alert(
+            "Metode pembayaran berhasil diganti. Membuka halaman pembayaran baru..."
+          );
+          if (res.paymentUrl) window.open(res.paymentUrl, "_blank");
+          // close modal
+          const modalEl = document.getElementById("changeMethodModal");
+          const modal = bootstrap.Modal.getInstance(modalEl);
+          if (modal) modal.hide();
+          loadBillingData("all");
+        },
+        error: function (err) {
+          console.error(err);
+          alert("Gagal mengganti metode pembayaran.");
+        },
+        complete: function () {
+          $btn.prop("disabled", false).text("Ganti Metode");
+        },
+      });
+    });
+
+    // Transaction detail modal
+    const $detailModal = $(
+      `
+      <div class="modal" id="txDetailModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Detail Transaksi</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="txDetailBody">
+                <p><strong>Merchant Order ID:</strong> <span id="d_merchantOrderId"></span></p>
+                <p><strong>Reference:</strong> <span id="d_reference"></span></p>
+                <p><strong>Jumlah:</strong> <span id="d_amount"></span></p>
+                <p><strong>Status:</strong> <span id="d_status"></span></p>
+                <p><strong>Deskripsi:</strong> <span id="d_description"></span></p>
+                <p><strong>Created At:</strong> <span id="d_created_at"></span></p>
+                <p><strong>Payment URL:</strong> <a href="#" id="d_paymentUrl" target="_blank"></a></p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+              <button type="button" class="btn btn-warning" id="d_change_method" style="display:none">Ganti Metode</button>
+              <button type="button" class="btn btn-primary" id="d_open_link">Buka Halaman Pembayaran</button>
+              <button type="button" class="btn btn-outline-secondary" id="d_copy_link">Salin Link</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      `
+    );
+    $("body").append($detailModal);
+
+    // Show detail when clicking 'Detail' button
+    $(document).on("click", ".view-detail", function (e) {
+      e.preventDefault();
+      const merchantOrderId = $(this).data("id");
+      if (!merchantOrderId) return alert("merchantOrderId tidak tersedia");
+      const modalEl = document.getElementById("txDetailModal");
+      const modal = new bootstrap.Modal(modalEl);
+      // fetch detail
+      $.ajax({
+        url: `/client/billing/transaction/${merchantOrderId}`,
+        method: "GET",
+        success: function (res) {
+          if (!res.success) return alert(res.message || "Gagal memuat detail");
+          const tx = res.data;
+          $("#d_merchantOrderId").text(tx.merchantOrderId);
+          $("#d_reference").text(tx.reference || "-");
+          $("#d_amount").text(
+            typeof tx.amount !== "undefined"
+              ? "Rp " + parseFloat(tx.amount).toLocaleString()
+              : "-"
+          );
+          $("#d_status").text(tx.status || "-");
+          $("#d_description").text(tx.description || "-");
+          $("#d_created_at").text(tx.created_at || "-");
+          if (tx.paymentUrl) {
+            $("#d_paymentUrl").attr("href", tx.paymentUrl).text(tx.paymentUrl);
+            $("#d_open_link")
+              .show()
+              .off("click")
+              .on("click", function () {
+                window.open(tx.paymentUrl, "_blank");
+              });
+            $("#d_copy_link")
+              .show()
+              .off("click")
+              .on("click", function () {
+                navigator.clipboard &&
+                  navigator.clipboard
+                    .writeText(tx.paymentUrl)
+                    .then(() => alert("Link disalin"));
+              });
+          } else {
+            $("#d_paymentUrl").attr("href", "#").text("-");
+            $("#d_open_link").hide();
+            $("#d_copy_link").hide();
+          }
+
+          // show change method button for pending transactions
+          if (tx.status === "pending") {
+            $("#d_change_method")
+              .show()
+              .off("click")
+              .on("click", function () {
+                // open change method modal prefilled
+                $("#changeMerchantOrderId").val(tx.merchantOrderId);
+                const changeModalEl =
+                  document.getElementById("changeMethodModal");
+                const changeModal = new bootstrap.Modal(changeModalEl);
+                changeModal.show();
+              });
+          } else {
+            $("#d_change_method").hide();
+          }
+          modal.show();
+        },
+        error: function () {
+          alert("Gagal mengambil detail transaksi");
+        },
+      });
+    });
+
+    function handleDuitkuCheckout(reference, paymentUrl, $btn) {
+      // Prefer redirecting/opening the paymentUrl in a new tab (window) per merchant request
+      if (paymentUrl) {
+        try {
+          window.open(paymentUrl, "_blank");
+          if ($btn) $btn.prop("disabled", false).html("Bayar");
+          return;
+        } catch (e) {
+          console.warn(
+            "Failed to open paymentUrl in new tab, falling back to popup",
+            e
+          );
+        }
+      }
+
+      // Fallback: use popup checkout if available
+      if (typeof checkout === "undefined")
+        return alert("Checkout tidak ditemukan");
+
+      checkout.process(reference, {
+        defaultLanguage: "id",
+        successEvent: () => {
+          alert("Pembayaran berhasil!");
+          loadBillingData("all");
+        },
+        pendingEvent: () => {
+          alert("Pembayaran sedang diproses.");
+          loadBillingData("all");
+        },
+        errorEvent: () => {
+          alert("Pembayaran gagal.");
+          if ($btn) $btn.prop("disabled", false).html("Bayar");
+        },
+        closeEvent: () => {
+          alert("Anda menutup popup pembayaran.");
+          if ($btn) $btn.prop("disabled", false).html("Bayar");
+        },
+      });
+    }
+
+    $("#topUpForm").on("submit", function (e) {
+      e.preventDefault();
+      if (topUpInProgress) return;
+
+      const amount = parseInt($("#amount").val());
+      const paymentMethod = $("#paymentMethod").val();
+      const $btn = $("#topUpButton");
+
+      if (!amount || amount < 25000) return alert("Minimal Rp 25.000");
+
+      topUpInProgress = true;
+      $btn
+        .prop("disabled", true)
+        .html('<i class="fa fa-spinner fa-spin"></i> Memproses...');
+
+      $.ajax({
+        url: "/create-invoice",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({
+          paymentAmount: amount,
+          paymentMethod: paymentMethod,
+          productDetail: "Top-Up Saldo",
+        }),
+        success: function (result) {
+          if (!result.success) {
+            alert(result.message || "Gagal membuat invoice.");
+            return;
+          }
+          // Open payment in a new tab using paymentUrl when provided by server
+          handleDuitkuCheckout(result.reference, result.paymentUrl || null);
+        },
+        error: function () {
+          alert("Gagal menghubungi server.");
+        },
+        complete: function () {
+          topUpInProgress = false;
+          $btn.prop("disabled", false).html("Lanjutkan Top-Up");
+        },
+      });
+    });
+
+    $(document).on("click", ".pay-btn", function (e) {
+      e.preventDefault();
+      const merchantOrderId = $(this).data("id");
+      const $btn = $(this)
+        .html('<i class="fa fa-spinner fa-spin"></i> Memeriksa...')
+        .prop("disabled", true);
+
+      $.ajax({
+        url: `/check-pending-transaction?merchantOrderId=${merchantOrderId}`,
+        method: "GET",
+        success: function (result) {
+          if (!result.success || !result.hasPending) {
+            alert("Transaksi tidak ditemukan.");
+            $btn.html("Bayar").prop("disabled", false);
+            return;
+          }
+
+          // Prefer opening stored paymentUrl if available
+          handleDuitkuCheckout(
+            result.reference,
+            result.paymentUrl || null,
+            $btn
+          );
+        },
+        error: function () {
+          alert("Gagal memeriksa transaksi.");
+          $btn.html("Bayar").prop("disabled", false);
+        },
+      });
+    });
+
+    // Tombol filter tab
+    $(".filter-btn").on("click", function () {
+      $(".filter-btn").removeClass("active");
+      $(this).addClass("active");
+      const status = $(this).data("status");
+      loadBillingData(status);
+    });
+    // Initial load
+    loadBillingData("all");
+  });
+</script>

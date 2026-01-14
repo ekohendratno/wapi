@@ -1,99 +1,288 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="text-success"><i class="fa fa-box me-2"></i>Packages</h4>
+  <h4 class="text-success"><i class="fa fa-box me-2"></i>Packages</h4>
 </div>
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="stat-card">
+      <h5 class="mb-3"><i class="fa fa-list me-2"></i>Daftar Paket</h5>
 
-<!-- Statistik Saldo -->
-<div class="row mb-12">
-    <% packages.forEach(pkg => { %>
-        <div class="col-md-3">
-            <div class="card h-100 pricing-card position-relative shadow-sm 
-                <%= pkg.recomended ? 'border-warning bg-warning bg-opacity-25' : 'border-secondary bg-light' %>">
-                
-                <!-- Badge Rekomendasi -->
-                <% if (pkg.recomended) { %>
-                    <span class="badge bg-success position-absolute top-0 start-50 translate-middle text-white px-3 py-2">
-                        Rekomendasi
-                    </span>
+      <% if (packages && packages.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama Paket</th>
+              <th>Harga</th>
+              <th>Durasi (hari)</th>
+              <th>Limit Pesan</th>
+              <th>Direkomendasikan</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% packages.forEach(function(pkg, idx) { %>
+            <tr>
+              <td><%= idx + 1 %></td>
+              <td><%= pkg.name %></td>
+              <td>
+                <%= (Number(pkg.price) || 0).toLocaleString('id-ID', { style:
+                'currency', currency: 'IDR' }) %>
+              </td>
+              <td><%= pkg.duration %></td>
+              <td><%= pkg.message_limit %></td>
+              <td>
+                <% if (pkg.recomended && Number(pkg.recomended) === 1) { %>
+                <span class="badge bg-success">Recommended</span>
+                <% } else { %>
+                <span class="badge bg-secondary">-</span>
                 <% } %>
-                
-                <!-- Konten Kartu -->
-                <div class="card-body text-center">
-                    <!-- Title Paket -->
-                    <h4 class="card-title fw-bold"><%= pkg.name %></h4>
-
-                    <!-- Harga Paket -->
-                    <h2 class="text-success">Rp <%= new Intl.NumberFormat('id-ID').format(pkg.price) %></h2>
-                    <small class="text-muted">/<%= pkg.duration %> hari</small>
-
-                    <!-- Fitur Paket -->
-                    <ul class="list-unstyled text-start mt-3">
-                        <% if (pkg.description) { %>
-                            <% pkg.description.split('<br>').forEach(line => { %>
-                                <li class="mb-2">
-                                    <% if (line.includes('✅')) { %>
-                                        <i class="fas fa-check-circle text-success me-2"></i>
-                                    <% } else { %>
-                                        <i class="fas fa-times-circle text-danger me-2"></i>
-                                    <% } %>
-                                    <%= line.replace('✅', '').replace('❌', '') %>
-                                </li>
-                            <% }) %>
-                        <% } else { %>
-                            <li class="text-muted">Tidak ada informasi fitur.</li>
-                        <% } %>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    <% }) %>
+              </td>
+              <td>
+                <a
+                  href="#"
+                  onclick="editPackage('<%= pkg.id %>'); return false;"
+                  class="btn btn-sm btn-primary"
+                  >Edit</a
+                >
+                <a
+                  href="/admin/package/delete/<%= pkg.id %>"
+                  class="btn btn-sm btn-danger ms-1"
+                  >Delete</a
+                >
+              </td>
+            </tr>
+            <tr>
+              <td colspan="7">
+                <div class="small text-muted"><%- pkg.description || '' %></div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } else { %>
+      <div class="alert alert-info">Belum ada paket yang tersedia.</div>
+      <% } %>
+    </div>
+  </div>
 </div>
-<style>
-/* Styling Umum */
-.pricing-card {
-    border: 2px solid #128C7E;
-    border-radius: 15px;
-    min-height: 400px;
-    transition: all 0.3s ease-in-out;
-    background: #fff;
-}
 
-.pricing-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15);
-}
+<!-- Ke bawah: bagian Riwayat Transaksi (kosongkan atau implementasi nanti) -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="stat-card">
+      <h5 class="mb-4"><i class="fa fa-history me-2"></i>Riwayat Transaksi</h5>
+      <!-- Transaksi akan diimplementasikan di bagian lain -->
+      <p class="text-muted">
+        Riwayat transaksi ditampilkan di menu Billing / Transaksi.
+      </p>
+    </div>
+  </div>
+</div>
 
-.pricing-card .card-title {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-}
+<!-- Floating Button -->
+<button
+  class="floating-button"
+  data-bs-toggle="modal"
+  data-bs-target="#formPackage"
+>
+  <i class="fas fa-plus"></i>
+</button>
+<!-- Form Dialog Tambah/Edit Package -->
+<div id="formPackage" class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah/Edit Paket</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="packageForm">
+          <input type="hidden" id="packageId" />
+          <div class="mb-3">
+            <label>Nama Paket</label>
+            <input
+              type="text"
+              id="packageName"
+              class="form-control"
+              placeholder="Nama paket"
+            />
+          </div>
+          <div class="mb-3">
+            <label>Harga (IDR)</label>
+            <input
+              type="number"
+              id="packagePrice"
+              class="form-control"
+              placeholder="Harga"
+            />
+          </div>
+          <div class="mb-3">
+            <label>Durasi (hari)</label>
+            <input
+              type="number"
+              id="packageDuration"
+              class="form-control"
+              placeholder="Durasi"
+            />
+          </div>
+          <div class="mb-3">
+            <label>Limit Pesan</label>
+            <input
+              type="number"
+              id="packageMessageLimit"
+              class="form-control"
+              placeholder="Limit pesan per hari"
+            />
+          </div>
+          <div class="mb-3">
+            <label>Deskripsi</label>
+            <textarea
+              id="packageDescription"
+              class="form-control"
+              rows="12"
+              placeholder="Deskripsi paket"
+            ></textarea>
+          </div>
+          <div class="mb-3 form-check">
+            <input
+              type="checkbox"
+              id="packageRecomended"
+              class="form-check-input"
+            />
+            <label class="form-check-label" for="packageRecomended"
+              >Direkomendasikan</label
+            >
+          </div>
+          <div class="mb-3 form-check">
+            <input
+              type="checkbox"
+              id="packageActive"
+              class="form-check-input"
+              checked
+            />
+            <label class="form-check-label" for="packageActive">Aktif</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-secondary" data-bs-dismiss="modal">Batalkan</a>
+        <button
+          id="packageButton"
+          class="btn btn-success"
+          type="button"
+          onclick="submitPackageForm()"
+        >
+          Simpan
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-.pricing-card .card-body h2 {
-    font-size: 2rem;
-    margin-bottom: 15px;
-}
+<script>
+  function bukaFormTambahPackage() {
+    document.getElementById("packageId").value = 0;
+    document.getElementById("packageName").value = "";
+    document.getElementById("packagePrice").value = "";
+    document.getElementById("packageDuration").value = "";
+    document.getElementById("packageMessageLimit").value = "";
+    document.getElementById("packageDescription").value = "";
+    document.getElementById("packageRecomended").checked = false;
+    document.getElementById("packageActive").checked = true;
+  }
 
-.pricing-card .card-body {
-    display: block;
-}
+  function editPackage(id) {
+    fetch(`/admin/package/edit/${id}`)
+      .then((r) => r.json())
+      .then((resp) => {
+        if (resp && resp.status && resp.data) {
+          const d = resp.data;
+          document.getElementById("packageId").value = d.id;
+          document.getElementById("packageName").value = d.name || "";
+          document.getElementById("packagePrice").value = d.price || "";
+          document.getElementById("packageDuration").value = d.duration || "";
+          document.getElementById("packageMessageLimit").value =
+            d.message_limit || "";
+          document.getElementById("packageDescription").value =
+            d.description || "";
+          document.getElementById("packageRecomended").checked =
+            Number(d.recomended) === 1;
+          document.getElementById("packageActive").checked =
+            Number(d.active) === 1;
+          var myModal = new bootstrap.Modal(
+            document.getElementById("formPackage")
+          );
+          myModal.show();
+        } else {
+          alert("Data paket tidak ditemukan");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Gagal memuat data paket");
+      });
+  }
 
-.pricing-card .badge {
-    font-size: 0.9rem;
-    font-weight: bold;
-    border-radius: 30px;
-}
+  function submitPackageForm() {
+    const btn = document.getElementById("packageButton");
+    btn.disabled = true;
+    btn.innerHTML = "Menyimpan...";
 
-/* Hover Effect */
-.feature-card:hover {
-    transform: translateY(-10px);
-}
+    const payload = {
+      id: document.getElementById("packageId").value || 0,
+      name: document.getElementById("packageName").value,
+      price: document.getElementById("packagePrice").value,
+      duration: document.getElementById("packageDuration").value,
+      message_limit: document.getElementById("packageMessageLimit").value,
+      description: document.getElementById("packageDescription").value,
+      recomended: document.getElementById("packageRecomended").checked ? 1 : 0,
+      active: document.getElementById("packageActive").checked ? 1 : 0,
+    };
 
-.provider-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 0.8rem;
-    background: rgba(0, 0, 0, 0.1);
-    padding: 3px 8px;
-    border-radius: 20px;
-}
-</style>
+    fetch("/admin/package/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((r) => r.json())
+      .then((resp) => {
+        if (resp && resp.status) {
+          location.reload();
+        } else {
+          alert(
+            "Gagal menyimpan paket: " +
+              (resp && resp.message ? resp.message : "unknown")
+          );
+          btn.disabled = false;
+          btn.innerHTML = "Simpan";
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Server error");
+        btn.disabled = false;
+        btn.innerHTML = "Simpan";
+      });
+  }
+
+  function hapusPackage(id) {
+    if (!confirm("Hapus paket ini?")) return;
+    fetch(`/admin/package/delete/${id}`, { method: "DELETE" })
+      .then((r) => r.json())
+      .then((resp) => {
+        if (resp && resp.status) location.reload();
+        else alert("Gagal menghapus paket");
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Server error");
+      });
+  }
+</script>

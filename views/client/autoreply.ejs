@@ -24,7 +24,7 @@
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>Device</th>
                         <th>Kata Kunci</th>
                         <th>Respon</th>
                         <th>Status</th>
@@ -41,7 +41,7 @@
                     <% } else { %>
                         <% autoReplies.autoreplies.forEach(autoreply => { %>
                             <tr>
-                                <td><%= autoreply.id %></td>
+                                <td><code><%= autoreply.device_key %></code></td>
                                 <td><%= autoreply.keyword %></td>
                                 <td><%= autoreply.response %></td>
                                 <td>
@@ -69,11 +69,11 @@
                                 </td>
                                 <td>
                                     <button class="btn btn-sm btn-warning btn-action" data-bs-toggle="modal" data-bs-target="#formAutoReply"
-                                                            onclick="editAutoReply(<%= autoreply.id %>)">
+                                                            onclick="editAutoReply(<%= autoreply.autoreply_id %>)">
                                                             <i class="fa fa-pen"></i>
                                                         </button>
                                     <button class="btn btn-sm btn-danger btn-action"
-                                                            onclick="hapusAutoReply(<%= autoreply.id %>)">
+                                                            onclick="hapusAutoReply(<%= autoreply.autoreply_id %>)">
                                                             <i class="fa fa-trash"></i>
                                                         </button>
                                 </td>
@@ -88,7 +88,7 @@
 </div>
 
 <!-- Floating Button -->
-<button class="floating-button" data-bs-toggle="modal" data-bs-target="#formAutoReply" onclick="bukaFormTambahAutoReply()">+</button>
+<button class="floating-button" data-bs-toggle="modal" data-bs-target="#formAutoReply" onclick="bukaFormTambahAutoReply()"><i class="fas fa-plus"></i></button>
 <!-- Form Dialog Tambah/Edit Auto-Reply -->
 <div id="formAutoReply" class="modal" style="display: none;">
     <div class="modal-dialog">
@@ -100,6 +100,16 @@
             <div class="modal-body">
                 <form id="autoReplyForm">
                     <input type="hidden" id="autoreplyId"/>
+                    <div class="mb-3">
+                        <label>Perangkat</label>
+                        <select id="deviceId" class="form-control">
+                            <% devices.forEach(device=> { %>
+                                <option value="<%= device.id %>">
+                                    <%= device.name %> (<%= device.phone %>)
+                                </option>
+                                <% }) %>
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label>Kata Kunci</label>
                         <input type="text" id="autoreplyKeyword" class="form-control" placeholder="Masukkan kata kunci">
@@ -140,6 +150,7 @@
 <script>
     function bukaFormTambahAutoReply() {
         $('#autoreplyId').val(0);
+        $('#deviceId').val('');
         $('#autoreplyKeyword').val('');
         $('#autoreplyRespon').val('');
         $('#autoreplyStatus').val('active');
@@ -149,12 +160,13 @@
     
     function editAutoReply(id) {
         $.ajax({
-            url: `/admin/autoreply/${id}`,
+            url: `/client/autoreply/${id}`,
             method: "GET",
             success: function(response) {
                 if (response.status) {
                     const data = response.data;
                     $('#autoreplyId').val(data.id);
+                    $('#deviceId').val(data.device_id);
                     $('#autoreplyKeyword').val(data.keyword);
                     $('#autoreplyRespon').val(data.response);
                     $('#autoreplyStatus').val(data.status);
@@ -171,6 +183,7 @@
     function submitAutoReplyForm() {
         const apiKey = $("#apiKey").val();
         const autoreplyId = $("#autoreplyId").val().trim();
+        const deviceId = $("#deviceId").val().trim();
         const autoreplyKeyword = $("#autoreplyKeyword").val().trim();
         const autoreplyRespon = $("#autoreplyRespon").val().trim();
         const autoreplyStatus = $("#autoreplyStatus").val().trim();
@@ -186,16 +199,18 @@
         }
     
         $.ajax({
-            url: "/admin/autoreply/register",
+            url: "/client/autoreply/register",
             method: "POST",
             data: {
                 apiKey: apiKey,
                 id: autoreplyId,
+                device: deviceId,
                 keyword: autoreplyKeyword,
                 response: autoreplyRespon,
                 status: autoreplyStatus,
                 is_for_personal: isForPersonal,
                 is_for_group: isForGroup,
+                device: deviceId,
             },
             success: function(response) {
                 if (response.status) {
@@ -218,7 +233,7 @@
         if (confirm("Apakah Anda yakin ingin menghapus Auto-Reply ini?")) {
             const apiKey = document.getElementById('apiKey').value;
             $.ajax({
-                url: `/admin/autoreply/remove?apiKey=${encodeURIComponent(apiKey)}&id=${encodeURIComponent(id)}`,
+                url: `/client/autoreply/remove?apiKey=${encodeURIComponent(apiKey)}&id=${encodeURIComponent(id)}`,
                 method: "DELETE",
                 success: function(response) {
                     if (response.status) {

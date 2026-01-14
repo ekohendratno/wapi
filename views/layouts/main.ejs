@@ -1,18 +1,283 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-</head>
-<body>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
-<%- body %>
+    <style>
+      :root {
+        --wa-brand: #25d366;
+        --wa-hover: #1ebc57;
+        --wa-dark: #075e54;
+        --bg-hero: #003126;
+        --text-dark: #0b221e;
+      }
+      body {
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        color: var(--text-dark);
+      }
+      .text-brand {
+        color: var(--wa-brand);
+      }
+      .bg-hero {
+        background-color: var(--bg-hero);
+      }
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+      .btn-brand {
+        background-color: var(--wa-brand);
+        color: #fff;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 10px 24px;
+        border: none;
+        transition: 0.2s;
+      }
+      .btn-brand:hover {
+        background-color: var(--wa-hover);
+        color: #fff;
+      }
+      .btn-outline-brand {
+        border: 2px solid var(--wa-brand);
+        color: var(--wa-brand);
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 8px 24px;
+        background: transparent;
+      }
+      .btn-outline-brand:hover {
+        background-color: var(--wa-brand);
+        color: #fff;
+      }
+
+      /* Navbar */
+      .navbar {
+        padding: 16px 0;
+        background: #fff;
+        transition: 0.3s;
+      }
+      .navbar-brand {
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--wa-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .nav-link {
+        font-weight: 500;
+        color: #4a4a4a;
+        margin: 0 10px;
+      }
+      .nav-link:hover {
+        color: var(--wa-brand);
+      }
+
+      /* Top Banner */
+      .top-banner {
+        background-color: #ff4747;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: center;
+        padding: 8px 15px;
+      }
+      @media (max-width: 576px) {
+        .top-banner {
+          font-size: 0.75rem;
+        }
+        .navbar-brand {
+          font-size: 1.25rem;
+        }
+        .btn-brand,
+        .btn-outline-brand {
+          padding: 8px 16px;
+          font-size: 0.9rem;
+        }
+      }
+
+      /* Footer */
+      footer {
+        background-color: #fff;
+        padding: 80px 0 40px;
+        border-top: 1px solid #eee;
+      }
+      footer h5 {
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--wa-dark);
+      }
+      footer ul li {
+        margin-bottom: 12px;
+      }
+      footer a {
+        color: #666;
+        text-decoration: none;
+        transition: 0.2s;
+      }
+      footer a:hover {
+        color: var(--wa-brand);
+      }
+      .footer-bottom {
+        margin-top: 60px;
+        padding-top: 30px;
+        border-top: 1px solid #eee;
+        font-size: 0.9rem;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <% if (typeof path !== 'undefined' && !path.startsWith('/auth')) { %>
+    <!-- Top Banner -->
+    <div class="top-banner">🔥 Akses API Lebih Awal Telah Tersedia!</div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <i class="fab fa-whatsapp text-success" style="font-size: 2rem"></i>
+          w@pi
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+            <li class="nav-item">
+              <a class="nav-link" href="/#pricing">Harga</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/#features">Fitur</a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="https://documenter.getpostman.com/view/11867160/2sA35D628Y"
+                target="_blank"
+                >Dokumentasi API</a
+              >
+            </li>
+          </ul>
+          <div class="d-flex align-items-center gap-2">
+            <a
+              href="/auth/login"
+              class="text-decoration-none text-dark fw-bold me-2"
+              >Login</a
+            >
+            <a
+              href="/auth/register"
+              class="btn btn-dark text-white fw-bold px-4"
+              style="border-radius: 8px"
+              >Try for Free</a
+            >
+          </div>
+        </div>
+      </div>
+    </nav>
+    <% } %> <%- body %>
+
+    <!-- Feature Section below is usually in index, but Footer is global -->
+    <% if (typeof path !== 'undefined' && !path.startsWith('/auth')) { %>
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-4 mb-4">
+            <a
+              href="/"
+              class="d-flex align-items-center gap-2 text-decoration-none mb-3"
+            >
+              <i
+                class="fab fa-whatsapp text-success"
+                style="font-size: 1.8rem"
+              ></i>
+              <span class="fw-bold fs-4 text-dark">w@pi</span>
+            </a>
+            <p class="text-muted">
+              Otomatisasi komunikasi WhatsApp Anda dengan mudah. Layanan API
+              yang aman, cepat, dan ramah pengembang.
+            </p>
+            <div class="d-flex gap-3 mt-4">
+              <a href="#"><i class="fab fa-twitter fa-lg"></i></a>
+              <a href="#"><i class="fab fa-instagram fa-lg"></i></a>
+              <a href="#"><i class="fab fa-github fa-lg"></i></a>
+            </div>
+          </div>
+          <div class="col-6 col-lg-2 offset-lg-1 mb-4">
+            <h5>Produk</h5>
+            <ul class="list-unstyled">
+              <li><a href="#pricing">Harga</a></li>
+              <li><a href="#features">Fitur</a></li>
+              <li><a href="/auth/register">Dapatkan Akses</a></li>
+              <li><a href="#">Status</a></li>
+            </ul>
+          </div>
+          <div class="col-6 col-lg-2 mb-4">
+            <h5>Sumber Daya</h5>
+            <ul class="list-unstyled">
+              <li><a href="#">Dokumentasi</a></li>
+              <li><a href="#">Referensi API</a></li>
+              <li><a href="#">Komunitas</a></li>
+              <li><a href="#">Pusat Bantuan</a></li>
+            </ul>
+          </div>
+          <div class="col-6 col-lg-2 mb-4">
+            <h5>Legal</h5>
+            <ul class="list-unstyled">
+              <li><a href="#">Kebijakan Privasi</a></li>
+              <li><a href="#">Syarat & Ketentuan</a></li>
+              <li><a href="#">Kebijakan Cookie</a></li>
+            </ul>
+          </div>
+        </div>
+        <div
+          class="footer-bottom d-flex flex-column flex-md-row justify-content-between align-items-center"
+        >
+          <span
+            >&copy; <%= new Date().getFullYear() %> w@pi Inc. Hak cipta
+            dilindungi undang-undang.</span
+          >
+          <div class="mt-3 mt-md-0">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
+              height="20"
+              class="mx-2 opacity-50"
+              alt="Visa"
+            />
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+              height="20"
+              class="mx-2 opacity-50"
+              alt="Mastercard"
+            />
+          </div>
+        </div>
+      </div>
+    </footer>
+    <% } %>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>

@@ -1,0 +1,100 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-success"><i class="fa fa-box me-2"></i>Packages</h4>
+</div>
+
+<!-- Statistik Saldo -->
+<div class="row gy-4">
+    <% packages.forEach(pkg => { %>
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+            <div class="card h-100 pricing-card position-relative shadow-sm 
+                <%= pkg.recomended ? 'border-warning bg-warning bg-opacity-25' : 'border-secondary bg-light' %>">
+                
+                <!-- Badge Rekomendasi -->
+                <% if (pkg.recomended) { %>
+                    <span class="badge bg-success position-absolute top-0 start-50 translate-middle text-white px-3 py-2">
+                        Rekomendasi
+                    </span>
+                <% } %>
+                
+                <!-- Konten Kartu -->
+                <div class="card-body text-center">
+                    <!-- Title Paket -->
+                    <h4 class="card-title fw-bold"><%= pkg.name %></h4>
+
+                    <!-- Harga Paket -->
+                    <h2 class="text-success">Rp <%= new Intl.NumberFormat('id-ID').format(pkg.price) %></h2>
+                    <small class="text-muted">/<%= pkg.duration %> hari</small>
+
+                    <!-- Fitur Paket -->
+                    <ul class="list-unstyled text-start mt-3">
+                        <% if (pkg.description) { %>
+                            <% pkg.description.split('<br>').forEach(line => { %>
+                                <li class="mb-2">
+                                    <% if (line.includes('✅')) { %>
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                    <% } else { %>
+                                        <i class="fas fa-times-circle text-danger me-2"></i>
+                                    <% } %>
+                                    <%= line.replace('✅', '').replace('❌', '') %>
+                                </li>
+                            <% }) %>
+                        <% } else { %>
+                            <li class="text-muted">Tidak ada informasi fitur.</li>
+                        <% } %>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    <% }) %>
+</div>
+
+<style>
+/* Styling Umum */
+.pricing-card {
+    border: 2px solid #128C7E;
+    border-radius: 15px;
+    min-height: 400px;
+    transition: all 0.3s ease-in-out;
+    background: #fff;
+}
+
+.pricing-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.pricing-card .card-title {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.pricing-card .card-body h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+}
+
+.pricing-card .card-body {
+    display: block;
+}
+
+.pricing-card .badge {
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 30px;
+}
+
+/* Hover Effect */
+.feature-card:hover {
+    transform: translateY(-10px);
+}
+
+.provider-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.8rem;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 3px 8px;
+    border-radius: 20px;
+}
+</style>

@@ -116,7 +116,7 @@
                                             <td>
                                                 <div class="btn-group">
                                                     <% if (['connecting', 'disconnected' ].includes(device.status)) { %>
-                                                        <a href="/admin/status?key=<%= device.device_key %>"
+                                                        <a href="/client/status?key=<%= device.device_key %>"
                                                             class="btn btn-success btn-action">
                                                             <i class="fa fa-qrcode"></i> Scan QR
                                                         </a>
@@ -275,7 +275,7 @@
 
             const apiKey = document.getElementById('apiKey').value;
 
-            fetch(`/admin/device/remove?api_key=${encodeURIComponent(apiKey)}&device_key=${encodeURIComponent(deviceKey)}`, {
+            fetch(`/client/device/remove?api_key=${encodeURIComponent(apiKey)}&device_key=${encodeURIComponent(deviceKey)}`, {
                 method: 'DELETE'
             })
                 .then(response => {
@@ -310,7 +310,7 @@
             }
 
             try {
-                const response = await fetch('/admin/device/register', {
+                const response = await fetch('/client/device/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

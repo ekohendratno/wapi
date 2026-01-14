@@ -1,0 +1,96 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="text-success">
+    <i class="fa fa-user-group me-2"></i>Group Perangkat
+  </h4>
+</div>
+
+<div class="alert alert-warning" role="alert">
+  <div>
+    <strong class="font-semibold">PETUNJUK PENDAFTARAN GRUP / CHANNEL</strong>
+    <br /><br />
+    <p class="mt-1">
+      Masukkan akun WhatsApp Anda ke dalam grup atau channel yang ingin
+      digunakan, lalu kirim pesan <b>"/register"</b> ke sana.
+    </p>
+    <p class="mt-1">
+      Jika berhasil, sistem akan membalas dengan pesan seperti:
+      <b>"Grup/Channel berhasil terdaftar: PFZOTK"</b>
+    </p>
+    <p class="mt-1">
+      Kode <b>PFZOTK</b> adalah ID unik untuk grup/channel tersebut — gunakan ID ini saat
+      mengirim pesan melalui sistem.
+    </p>
+    <br />
+    <p class="mt-1">
+      Untuk menghapus grup/channel dari daftar, cukup kirim pesan
+      <b>"/unregister"</b> ke grup tersebut.
+    </p>
+    <br />
+    <p class="mt-1">
+      Jika ada label <b><i>(Channel)</i></b> di samping ID grup, artinya itu adalah
+      channel, bukan grup biasa.
+    </p>
+  </div>
+</div>
+
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="stat-card">
+      <h5 class="mb-4"><i class="fa fa-list me-2"></i>Daftar Group Terdaftar</h5>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Group Key</th>
+              <th>Group ID</th>
+              <th>Nama Group</th>
+            </tr>
+          </thead>
+           <% if (!groups || groups.length===0) { %>
+            <tr>
+              <td colspan="5" class="text-center">
+                Tidak ada device terdaftar
+              </td>
+            </tr>
+            <% } else { %> <% groups.forEach(group=> { %>
+
+            <tr>
+              <td><code><%= group.group_key %></code></td>
+              <td><code><%= group.group_id %></code></td>
+              <td><%= group.name %></td>           
+            </tr>
+
+            <% }) %> <% } %>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="stat-card">
+      <h5 class="mb-4">
+        <i class="fa fa-info-circle me-2"></i>Informasi Perangkat
+      </h5>
+
+      <div class="mb-3">
+        <label>Device Key</label>
+        <p><code><%= device.device_key %></code></p>
+      </div>
+      <div class="mb-3">
+        <label>Nomor WhatsApp</label>
+        <p><strong><%= device.phone || 'Tidak tersedia' %></strong></p>
+      </div>
+      <div class="mb-3">
+        <label>Nama Akun WhatsApp</label>
+        <p><strong><%= device.name || 'Tidak tersedia' %></strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  
+</script>

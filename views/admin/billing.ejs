@@ -1,504 +1,145 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="text-success"><i class="fa fa-dollar-sign me-2"></i>Manajemen Billing</h4>
+  <h4 class="text-success">
+    <i class="fa fa-dollar-sign me-2"></i>Manajemen Billing
+  </h4>
 </div>
 <!-- Statistik Saldo -->
 <div class="row mb-4">
-    <div class="col-md-4">
-        <div class="stat-card">
-            <h5>Saldo Tersedia</h5>
-            <h2>Rp <%= balance.toLocaleString() %>
-            </h2>
-            <small>Update terakhir: 5 menit lalu</small>
-        </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <h5>Saldo Tersedia</h5>
+      <h2>Rp 0</h2>
+      <small>Update terakhir: 0</small>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <h5>Pemakaian Bulan Ini</h5>
-            <h2>Rp <%= totalUsed.toLocaleString() %>
-            </h2>
-        </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <h5>Pemakaian</h5>
+      <h2>Rp 0</h2>
+      <small>Bulan Ini</small>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <h5>Tagihan Belum Lunas</h5>
-            <h2>1 Invoice</h2>
-            <small>Jatuh tempo 3 hari</small>
-        </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <h5>Belum Terbayar</h5>
+      <h2>0 Pending</h2>
+      <small>Jatuh tempo 1x24 jam</small>
     </div>
+  </div>
 </div>
 <div class="row">
-    <div class="col-md-8">
-        <div class="stat-card">
-            <h5 class="mb-4"><i class="fa fa-history me-2"></i>Riwayat Transaksi</h5>
-            <!-- Tabs -->
+  <div class="col-md-12">
+    <div class="stat-card">
+      <h5 class="mb-4"><i class="fa fa-history me-2"></i>Riwayat Transaksi</h5>
+      <!-- Tabs -->
 
-            <ul class="nav nav-tabs mb-3">
-                <li class="nav-item">
-                    <a class="nav-link active filter-btn" data-status="all" href="#">Semua</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link filter-btn" data-status="pending" href="#">Pending</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link filter-btn" data-status="success" href="#">Success</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link filter-btn" data-status="paid" href="#">Paid</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link filter-btn" data-status="failed" href="#">Failed</a>
-                </li>
-            </ul>
+      <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+          <a class="nav-link active filter-btn" data-status="all" href="#"
+            >Semua</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link filter-btn" data-status="pending" href="#"
+            >Pending</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link filter-btn" data-status="success" href="#"
+            >Success</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link filter-btn" data-status="paid" href="#">Paid</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link filter-btn" data-status="failed" href="#"
+            >Failed</a
+          >
+        </li>
+      </ul>
 
-            <!-- Tabel Transaksi -->
-            <table class="table table-striped table-hover" id="transaksiTable">
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Deskripsi</th>
-                        <th>Jumlah</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-
-        </div>
+      <!-- Tabel Transaksi -->
+      <table class="table table-striped table-hover" id="transaksiTable">
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Deskripsi</th>
+            <th>Jumlah</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <h5 class="mb-4"><i class="fa fa-credit-card me-2"></i>Top-Up Saldo</h5>
-            <form id="topUpForm">
-                <div class="mb-3">
-                    <label>Jumlah Top-Up</label>
-                    <input type="number" id="amount" class="form-control" placeholder="Masukkan jumlah top-up" required
-                        min="1">
-                </div>
-                <div class="mb-3">
-                    <label>Metode Pembayaran</label>
-                    <select id="paymentMethod" class="form-control" required>
-                        <option value="VC">Virtual Account</option>
-                        <option value="EW">E-Wallet</option>
-                        <option value="BT">Bank Transfer</option>
-                    </select>
-                </div>
-                <button id="topUpButton" class="btn btn-success w-100" type="submit">
-                    Lanjutkan Top-Up
-                </button>
-            </form>
-        </div>
-    </div>
+  </div>
 </div>
 
-<script src="https://app-sandbox.duitku.com/lib/js/duitku.js"></script>
-<input type="hidden" id="apiKey" value="<%= apiKey %>">
 <script>
+  $(document).ready(function () {
+    function loadBillingData(status = "all") {
+      $.ajax({
+        url: "/admin/billing/data",
+        method: "GET",
+        data: { status },
+        success: function (response) {
+          if (!response.success) return alert("Gagal memuat transaksi");
+          const { transactions, balance, totalUsed, totalPending } =
+            response.data;
 
-    $(document).ready(function () {
-        // Fungsi untuk memuat data billing berdasarkan status tab yang aktif
-        async function loadBillingData(status = 'all') {
-            try {
-                const response = await $.ajax({
-                    url: '/admin/billing/data',
-                    method: 'GET',
-                    data: { status }, // Kirim parameter status ke server
-                });
+          // Update saldo dan pemakaian
+          $(".stat-card:eq(0) h2").text(`Rp ${balance.toLocaleString()}`);
+          $(".stat-card:eq(1) h2").text(`Rp ${totalUsed.toLocaleString()}`);
+          $(".stat-card:eq(2) h2").text(`${totalPending} Pending`);
 
-                if (response.success) {
-                    const { transactions, balance, totalUsed } = response.data;
+          const tbody = $("#transaksiTable tbody");
+          tbody.empty();
 
-                    // Tampilkan saldo
-                    $('#balance').text(`Rp ${formatCurrency(balance)}`);
-                    $('#total-used').text(`Rp ${formatCurrency(totalUsed)}`);
+          if (transactions.length === 0) {
+            tbody.append(
+              `<tr><td colspan="5" class="text-center">Tidak ada transaksi</td></tr>`
+            );
+            return;
+          }
 
-                    // Tampilkan daftar transaksi
-                    const tableBody = $('#transaksiTable tbody');
-                    tableBody.empty();
+          $.each(transactions, function (_, tx) {
+            const badge = getStatusBadge(tx.status);
+            tbody.append(`
+              <tr>
+                <td>${tx.formattedDate}</td>
+                <td>${tx.description}</td>
+                <td>${tx.amountFormatted}</td>
+                <td>${badge}</td>
+              </tr>`);
+          });
+        },
+        error: function (err) {
+          console.error(err);
+          alert("Gagal mengambil data billing.");
+        },
+      });
+    }
 
-                    if (transactions.length === 0) {
-                        tableBody.append('<tr><td colspan="5" class="text-center">Tidak ada riwayat transaksi</td></tr>');
-                    } else {
-                        transactions.forEach(tx => {
-                            tableBody.append(`
-                            <tr>
-                                <td>${tx.formattedDate}</td>
-                                <td>${tx.description}</td>
-                                <td>${tx.amountFormatted}</td>
-                                <td>${getStatusBadge(tx.status)}</td>
-                                <td>${getActionButtons(tx.status, tx.reference, tx.merchantOrderId, tx.created_at)}</td>
-                            </tr>
-                        `);
-                        });
-                    }
-                } else {
-                    alert('Gagal memuat data transaksi.');
-                }
-            } catch (error) {
-                console.error('Error fetching billing data:', error);
-                alert('Terjadi kesalahan saat memuat data transaksi.');
-            }
-        }
+    function getStatusBadge(status) {
+      const map = {
+        success: "bg-success",
+        paid: "bg-primary",
+        failed: "bg-danger",
+        pending: "bg-warning text-dark",
+      };
+      return `<span class="badge ${
+        map[status] || "bg-secondary"
+      }">${status}</span>`;
+    }
 
-        // Fungsi untuk memformat mata uang
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
-        }
-
-        // Fungsi untuk mendapatkan badge status
-        function getStatusBadge(status) {
-            switch (status) {
-                case 'success':
-                    return '<span class="badge bg-success">Success</span>';
-                case 'paid':
-                    return '<span class="badge bg-primary">Paid</span>';
-                case 'failed':
-                    return '<span class="badge bg-danger">Failed</span>';
-                default:
-                    return '<span class="badge bg-secondary">Pending</span>';
-            }
-        }
-
-        // Fungsi untuk mendapatkan tombol aksi
-        function getActionButtons(status, reference, merchantOrderId, createdAt) {
-            // Hitung selisih waktu dalam milidetik
-            const transactionTime = new Date(createdAt).getTime();
-            const currentTime = Date.now();
-            const timeDifference = currentTime - transactionTime;
-
-            // Batas waktu adalah 24 jam (dalam milidetik)
-            const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
-
-            // Tampilkan tombol "Bayar" hanya jika:
-            // 1. Status transaksi adalah 'pending'
-            // 2. Kolom `reference` tidak kosong (`null`)
-            // 3. Waktu transaksi tidak lebih dari 24 jam
-            if (
-                status === 'pending' &&
-                reference != null &&
-                timeDifference <= twentyFourHoursInMs
-            ) {
-                return `
-                <a href="javascript:void(0);" class="btn btn-warning btn-sm" onclick="payPending('${merchantOrderId}')">
-                    Bayar
-                </a>
-            `;
-            }
-            return '';
-        }
-
-        // Event listener untuk filter tab
-        $('.filter-btn').on('click', function () {
-            const status = $(this).data('status'); // Ambil status dari atribut data-status
-            $('.filter-btn').removeClass('active'); // Nonaktifkan semua tombol
-            $(this).addClass('active'); // Aktifkan tombol yang dipilih
-            loadBillingData(status); // Muat data berdasarkan status
-        });
-
-        // Panggil fungsi untuk memuat data saat halaman dimuat
-        loadBillingData(); // Default: 'all'
-
-        async function payPending(merchantOrderId) {
-            try {
-                const btn = $(`a[onclick="payPending('${merchantOrderId}')"]`);
-                btn.text('Memeriksa...').prop('disabled', true);
-
-                const response = await fetch(`/check-pending-transaction?merchantOrderId=${merchantOrderId}`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                const result = await response.json();
-
-                if (result.success && result.hasPending) {
-                    if (result.reference) {
-                        if (typeof checkout === "undefined") {
-                            alert("Error: Duitku library tidak ditemukan!");
-                            btn.text('Bayar').prop('disabled', false);
-                            return;
-                        }
-
-                        btn.text('Sedang Diproses...');
-
-                        checkout.process(result.reference, {
-                            defaultLanguage: "id",
-                            successEvent: function (response) {
-                                loadBillingData('all');
-                                console.log('Pembayaran berhasil:', response);
-                                alert('Pembayaran berhasil!');
-                                btn.text('Lunas').prop('disabled', true).removeClass('btn-primary').addClass('btn-success'); // Update tombol
-                            },
-                            pendingEvent: function (response) {
-                                console.log('Pembayaran sedang diproses:', response);
-                                alert('Pembayaran sedang diproses.');
-                                btn.text('Menunggu Konfirmasi...').prop('disabled', true);
-                            },
-                            errorEvent: function (response) {
-                                console.error('Pembayaran gagal:', response);
-                                alert('Pembayaran gagal. Silakan coba lagi.');
-                                btn.text('Bayar').prop('disabled', false);
-                            },
-                            closeEvent: function (response) {
-                                console.log('User menutup popup tanpa menyelesaikan pembayaran:', response);
-                                alert('Anda menutup popup tanpa menyelesaikan pembayaran.');
-                                btn.text('Bayar').prop('disabled', false);
-                            }
-                        });
-
-                    } else {
-                        alert('Referensi transaksi tidak ditemukan.');
-                        btn.text('Bayar').prop('disabled', false);
-                    }
-                } else {
-                    alert('Tidak ada transaksi pending yang ditemukan.');
-                    btn.text('Bayar').prop('disabled', false);
-                }
-            } catch (error) {
-                console.error('Error checking pending transaction:', error);
-                alert('Terjadi kesalahan saat memeriksa transaksi pending.');
-                btn.text('Bayar').prop('disabled', false);
-            } finally {
-                loadBillingData('all');
-            }
-        }
-
-        document.getElementById('topUpForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const amount = document.getElementById('amount').value;
-            const paymentMethod = document.getElementById('paymentMethod').value;
-            const topUpButton = document.getElementById('topUpButton');
-
-            // Validasi input
-            if (!amount || amount <= 0) {
-                alert('Jumlah top-up harus lebih besar dari 0.');
-                return;
-            }
-
-            if (!amount || amount < 25000) {
-                alert('Jumlah top-up minimal 25.000.');
-                return;
-            }
-
-            if (!paymentMethod) {
-                alert('Silakan pilih metode pembayaran.');
-                return;
-            }
-
-            // Disable tombol dan ubah teks jadi "Memproses..."
-            topUpButton.disabled = true;
-            topUpButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memproses...';
-
-            try {
-                // Kirim permintaan ke backend untuk mendapatkan reference
-                const response = await fetch('/create-invoice', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        paymentAmount: amount,
-                        paymentMethod: paymentMethod,
-                        productDetail: 'Top-Up Saldo'
-                    })
-                });
-
-                const result = await response.json();
-
-                if (!result.success) {
-                    alert(result.message || 'Gagal memproses top-up.');
-                    return;
-                }
-
-                // Buka popup Duitku
-                checkout.process(result.reference, {
-                    defaultLanguage: "id",
-                    successEvent: function (response) {
-                        loadBillingData('all');
-                        console.log('Payment successful:', response);
-                        alert('Pembayaran berhasil!');
-                    },
-                    pendingEvent: function (response) {
-                        console.log('Payment pending:', response);
-                        alert('Pembayaran sedang diproses.');
-                    },
-                    errorEvent: function (response) {
-                        console.error('Payment failed:', response);
-                        alert('Pembayaran gagal.');
-                    },
-                    closeEvent: function (response) {
-                        console.log('Customer closed the popup:', response);
-                        alert('Anda menutup popup tanpa menyelesaikan pembayaran.');
-                    }
-                });
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat memproses top-up.');
-            } finally {
-                loadBillingData();
-                topUpButton.disabled = false;
-                topUpButton.innerHTML = 'Lanjutkan Top-Up';
-            }
-        });
-        console.log('Document ready');
-        console.log('Loading billing data...');
-        console.log('Loaded billing data');
-
-        // Fungsi untuk memuat data saat halaman dimuat
-        loadBillingData();
-
-        async function payPending(merchantOrderId) {
-            try {
-                console.log('Paying pending transaction...');
-                const btn = $(`a[onclick="payPending('${merchantOrderId}')"]`);
-                btn.text('Memeriksa...').prop('disabled', true);
-
-                const response = await fetch(`/check-pending-transaction?merchantOrderId=${merchantOrderId}`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                const result = await response.json();
-
-                console.log('Checked pending transaction:', result);
-
-                if (result.success && result.hasPending) {
-                    if (result.reference) {
-                        if (typeof checkout === "undefined") {
-                            console.error("Error: Duitku library tidak ditemukan!");
-                            alert("Error: Duitku library tidak ditemukan!");
-                            btn.text('Bayar').prop('disabled', false);
-                            return;
-                        }
-
-                        btn.text('Sedang Diproses...');
-
-                        checkout.process(result.reference, {
-                            defaultLanguage: "id",
-                            successEvent: function (response) {
-                                console.log('Payment successful:', response);
-                                loadBillingData();
-                                alert('Pembayaran berhasil!');
-                                btn.text('Lunas').prop('disabled', true).removeClass('btn-primary').addClass('btn-success'); // Update tombol
-                            },
-                            pendingEvent: function (response) {
-                                console.log('Payment pending:', response);
-                                alert('Pembayaran sedang diproses.');
-                                btn.text('Menunggu Konfirmasi...').prop('disabled', true);
-                            },
-                            errorEvent: function (response) {
-                                console.error('Payment failed:', response);
-                                alert('Pembayaran gagal.');
-                                btn.text('Bayar').prop('disabled', false);
-                            },
-                            closeEvent: function (response) {
-                                console.log('Customer closed the popup:', response);
-                                alert('Anda menutup popup tanpa menyelesaikan pembayaran.');
-                                btn.text('Bayar').prop('disabled', false);
-                            }
-                        });
-
-                    } else {
-                        console.error('Referensi transaksi tidak ditemukan.');
-                        alert('Referensi transaksi tidak ditemukan.');
-                        btn.text('Bayar').prop('disabled', false);
-                    }
-                } else {
-                    console.error('Tidak ada transaksi pending yang ditemukan.');
-                    alert('Tidak ada transaksi pending yang ditemukan.');
-                    btn.text('Bayar').prop('disabled', false);
-                }
-            } catch (error) {
-                console.error('Error checking pending transaction:', error);
-                alert('Terjadi kesalahan saat memeriksa transaksi pending.');
-                btn.text('Bayar').prop('disabled', false);
-            } finally {
-                console.log('Finished paying pending transaction');
-                loadBillingData();
-            }
-        }
-
-        document.getElementById('topUpForm').addEventListener('submit', async (e) => {
-            console.log('Submitting top-up form...');
-            e.preventDefault();
-            const amount = document.getElementById('amount').value;
-            const paymentMethod = document.getElementById('paymentMethod').value;
-            const topUpButton = document.getElementById('topUpButton');
-
-            // Validasi input
-            if (!amount || amount <= 0) {
-                console.error('Jumlah top-up harus lebih besar dari 0.');
-                alert('Jumlah top-up harus lebih besar dari 0.');
-                return;
-            }
-
-            if (!amount || amount < 25000) {
-                console.error('Jumlah top-up minimal 25.000.');
-                alert('Jumlah top-up minimal 25.000.');
-                return;
-            }
-
-            if (!paymentMethod) {
-                console.error('Silakan pilih metode pembayaran.');
-                alert('Silakan pilih metode pembayaran.');
-                return;
-            }
-
-            // Disable tombol dan ubah teks jadi "Memproses..."
-            topUpButton.disabled = true;
-            topUpButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memproses...';
-
-            try {
-                // Kirim permintaan ke backend untuk mendapatkan reference
-                const response = await fetch('/create-invoice', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        paymentAmount: amount,
-                        paymentMethod: paymentMethod,
-                        productDetail: 'Top-Up Saldo'
-                    })
-                });
-
-                const result = await response.json();
-
-                console.log('Created invoice:', result);
-
-                if (!result.success) {
-                    console.error(result.message || 'Gagal memproses top-up.');
-                    alert(result.message || 'Gagal memproses top-up.');
-                    return;
-                }
-
-                // Buka popup Duitku
-                checkout.process(result.reference, {
-                    defaultLanguage: "id",
-                    successEvent: function (response) {
-                        console.log('Payment successful:', response);
-                        loadBillingData();
-                        alert('Pembayaran berhasil!');
-                    },
-                    pendingEvent: function (response) {
-                        console.log('Payment pending:', response);
-                        alert('Pembayaran sedang diproses.');
-                    },
-                    errorEvent: function (response) {
-                        console.error('Payment failed:', response);
-                        alert('Pembayaran gagal.');
-                    },
-                    closeEvent: function (response) {
-                        console.log('Customer closed the popup:', response);
-                        alert('Anda menutup popup tanpa menyelesaikan pembayaran.');
-                    }
-                });
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat memproses top-up.');
-            } finally {
-                console.log('Finished submitting top-up form');
-                loadBillingData();
-                topUpButton.disabled = false;
-                topUpButton.innerHTML = 'Lanjutkan Top-Up';
-            }
-        });
-
+    // Tombol filter tab
+    $(".filter-btn").on("click", function () {
+      $(".filter-btn").removeClass("active");
+      $(this).addClass("active");
+      const status = $(this).data("status");
+      loadBillingData(status);
     });
+    // Initial load
+    loadBillingData("all");
+  });
 </script>

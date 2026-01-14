@@ -1,0 +1,96 @@
+<div class="stat-card">
+  <h5 class="mb-4">Pengenalan</h5>
+  <p>
+    <strong>w@pi</strong> adalah platform yang memungkinkan Anda mengirim dan menerima pesan WhatsApp secara otomatis melalui API. Berikut adalah panduan lengkap untuk menggunakan API ini.
+  </p>
+</div>
+
+<div class="stat-card">
+  <h5 class="mb-4">Endpoint Dasar</h5>
+  <p>URL dasar untuk semua permintaan API:</p>
+  <pre><code>https://wapi.jasaedukasi.com/v1</code></pre>
+</div>
+
+<div class="stat-card">
+  <h5 class="mb-4">Mengirim Pesan</h5>
+  <p>Gunakan endpoint berikut untuk mengirim pesan ke nomor WhatsApp:</p>
+  <pre><code>POST /message</code></pre>
+
+  <p><strong>Contoh body permintaan:</strong></p>
+  <pre><code>{
+  "apiKey"    : "9b0a811f5d511d91b630a93ad882064b0ced925ffb46d188df920c339e824e82",
+  "deviceKey" : "c6b6cc17",
+  "tags"      : "group",
+  "to"        : "PFZOTK",
+  "text"      : "Halo! Ini adalah pesan otomatis dari WhatsApp Gateway",
+  "isGroup"   : 1
+}</code></pre>
+
+  <p><strong>Parameter:</strong></p>
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Tipe</th>
+          <th>Deskripsi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>apiKey</code></td>
+          <td><code>string</code></td>
+          <td>Kunci API pengguna yang valid (didapat dari dashboard).</td>
+        </tr>
+        <tr>
+          <td><code>deviceKey</code></td>
+          <td><code>string</code></td>
+          <td>Kode perangkat yang sudah terhubung ke WhatsApp Gateway.</td>
+        </tr>
+        <tr>
+          <td><code>tags</code></td>
+          <td><code>string</code></td>
+          <td>
+            <em>Optional</em>. Keterangan bebas untuk menandai pesan, bisa pakai koma <code>,</code> untuk tanda lebih dari 1 (misalnya: <code>Group</code>, <code>Personal</code>, <code>Marketing</code>, dll). Tidak berpengaruh pada logika pengiriman.
+          </td>
+        </tr>
+        <tr>
+          <td><code>to</code></td>
+          <td><code>string</code></td>
+          <td>Nomor tujuan (untuk <code>personal</code>) atau Group Key (untuk <code>group</code>).</td>
+        </tr>
+        <tr>
+          <td><code>text</code></td>
+          <td><code>string</code></td>
+          <td>Isi pesan teks yang akan dikirim.</td>
+        </tr>
+        <tr>
+          <td><code>isGroup</code></td>
+          <td><code>number</code> (0 atau 1)</td>
+          <td>Set ke <code>1</code> jika mengirim ke grup, <code>0</code> jika ke personal.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>Respons sukses:</strong></p>
+  <pre><code>{
+  "status": "success",
+  "message": "Message registered successfully",
+  "data": {
+    "status": true,
+    "message": "Message registered successfully",
+    "messageId": 18
+  }
+}</code></pre>
+</div>
+
+<div class="stat-card">
+  <h5 class="mb-4">Kesalahan (Error Handling)</h5>
+  <p>Jika terjadi kesalahan, API akan mengembalikan respons dengan format berikut:</p>
+  <pre><code>{
+  "status": "error",
+  "message": "Invalid API key",
+  "code": 401
+}</code></pre>
+</div>
